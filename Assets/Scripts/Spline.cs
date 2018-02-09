@@ -370,7 +370,7 @@ public class Spline : MonoBehaviour
 		}
 		foreach (var poly in polies) { 
 			Debug.Log ( String.Join( ",", poly.Select( v => v.ToString() ).ToArray() ) );
-			//combi
+			//vector
 		}
 	}
 	
