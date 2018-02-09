@@ -54,7 +54,10 @@ public class Spline : MonoBehaviour
 
 	//	List<int> Lines = new List<int>();
 	[SerializeField]
-	public List< List<int> > polies = new List <List<int>>();
+	public List< List<int> > poliesLeft = new List <List<int>>();
+	[SerializeField]
+	public List< List<int> > poliesRight = new List <List<int>>();
+
 	[SerializeField]
 	public List <int> segment;
 //	dot2d IntersectionPoint;
@@ -85,7 +88,8 @@ public class Spline : MonoBehaviour
 //		intersectedPoly = 0;
 		lines.Clear ();
 //		polies.Clear ();
-		polies = new List<List<int>> { new List<int> () };
+		poliesLeft = new List<List<int>> { new List<int> () };
+		poliesRight = new List<List<int>> { new List<int> () };
 //		Segment.Clear();
 		//		Points.Clear(Points,0,Points.Length);
 //		Points = new dot2d[400];
@@ -281,103 +285,74 @@ public class Spline : MonoBehaviour
 								inters_left  = segment.TakeWhile ( v => v != lineEndIndex ).ToList();//Lines[ LinesIterator ] //PointsNumber ).ToList(); //(inters_position1); 
 								inters_right = segment.SkipWhile ( v => v != lineEndIndex ).ToList();//.Skip (1);
 		//						CurrentPolyIndex = 
-								polies.Add (inters_right);
+								poliesLeft.Add (inters_right);
 		//							Polies [ IntersectedPolyIndex+1 ] = inters_right;
 		//						var ReversedRightList = inters_right;
 		//							ReversedRightList.Reverse ();
 								inters_right.Reverse ();
 		//						Polies [IntersectedPolyIndex+2] = inters_left.Union(inters_right).ToList();//inters_right.Reverse() ).ToList();
-								polies.Add ( inters_left.Union(inters_right).ToList() );
-		////						IntersectedPolyIndex+=2;
-		////						Polies [CurrentPolyIndex] = Segment;
-		//						Segment = inters_left;
-//								segment.Clear();
+								poliesRight.Add ( inters_left.Union(inters_right).ToList() );
+		////					segment.Clear();
 								segment = new List<int> {pointsNumber};//.Add (PointsNumber);//new List<int> {PointsNumber};
-								previousIntersectedPoly = polies.Count() - 2; //+= 2;
-								selfCross = true;
 						} 
 						else {
 	//						FindIntersectionIndexInList
-								var poliesNumber = polies.Count;
+								var poliesNumber = poliesLeft.Count;
 
 								for (int polyIndex = 0; polyIndex < poliesNumber; polyIndex++) {
-									if (polies[polyIndex].Contains( lineEndIndex )) {
+									if (poliesLeft [polyIndex].Contains (lineEndIndex)) {
 
-										intersectedPoly = polyIndex;
-										var tmpPoly = polies [intersectedPoly];
+										var tmpPoly = poliesLeft [polyIndex];
 										var tmpSegment = segment;
-										//if (PreviousIntersectionFound) {
 
-										tailInsertIndex = (tmpPoly.IndexOf ( lineStartIndex ) < tmpPoly.IndexOf ( lineEndIndex )) ? lineEndIndex : lineStartIndex;
-											//(tmpPoly.Where ((v, v1) => v == lines [linesIterator - 1] && v1 == lines [linesIterator]).Count == 2) ? lines [linesIterator] : lines [linesIterator - 1];
+										tailInsertIndex = (tmpPoly.IndexOf (lineStartIndex) < tmpPoly.IndexOf (lineEndIndex)) ? lineEndIndex : lineStartIndex;
+	//						Add left and right parts
+										inters_left = tmpPoly.TakeWhile (v => v != tailInsertIndex).ToList ();
+										tmpSegment.Reverse ();
+										poliesLeft.Add (inters_left.Concat (tmpSegment).ToList ());
 
+										inters_right = tmpPoly.SkipWhile (v => v != tailInsertIndex).ToList ();
+										poliesRight.Add (segment.Concat (inters_right).ToList ());
+									} // condition if poly was found
+//									segment = new List<int> {pointsNumber};
+								}  // polies list search cycle end
+								
+								poliesNumber = poliesRight.Count;
 
-									if (intersectedPoly == previousIntersectedPoly) {
+								for (int polyIndex = 0; polyIndex < poliesNumber; polyIndex++) {
+									if (poliesRight [polyIndex].Contains (lineEndIndex)) {
 
-										//find insertion. position
-										tailInsertSegmentPos = tmpPoly.IndexOf (tailInsertIndex);
-										// if direct dot elements order 
-										if (tailInsertSegmentPos > headInsertSegmentPos) {
-											//													var tmpPoly = polies [intersectedPoly];
+										var tmpPoly = poliesRight [polyIndex];
+										var tmpSegment = segment;
 
-											tmpPoly.RemoveRange (headInsertSegmentPos, tailInsertSegmentPos - headInsertSegmentPos);
-											tmpPoly.InsertRange (headInsertSegmentPos, segment);
+										tailInsertIndex = (tmpPoly.IndexOf (lineStartIndex) < tmpPoly.IndexOf (lineEndIndex)) ? lineEndIndex : lineStartIndex;
+										//						Add left and right parts
+										inters_left = tmpPoly.TakeWhile (v => v != tailInsertIndex).ToList ();
+										tmpSegment.Reverse ();
+										poliesRight.Add (inters_left.Concat (tmpSegment).ToList ());
 
-											tmpSegment.Reverse ();
-											polies.Add (tmpPoly.Skip (headInsertSegmentPos).TakeWhile (ind => ind != tailInsertIndex).Concat (tmpSegment).ToList ()); 
-											polies [intersectedPoly] = tmpPoly;//polies.Add (tmpPoly);
-										} else {
-											//											reversed dot elements order		(direct Segment order)
-											polies.Add (tmpSegment.Concat (tmpPoly.Skip (tailInsertSegmentPos).TakeWhile (ind => ind != headInsertIndex)).ToList ());
-
-											tmpPoly.RemoveRange (0, headInsertSegmentPos);
-											tmpSegment.Reverse ();
-											polies [intersectedPoly] = tmpSegment.Concat (tmpPoly).ToList (); //polies.Add ( tmpSegment+tmpPoly );
-											//											tmpPoly.InsertRange (headInsertSegmentPos, Segment);
-										}
-									} else {
-										//										Add left and right parts
-										if (tailInsertSegmentPos > headInsertSegmentPos) {
-											inters_left = tmpPoly.TakeWhile (v => v != tailInsertIndex).ToList ();
-											tmpSegment.Reverse ();
-											polies.Add (inters_left.Concat (tmpSegment).ToList ());
-
-											inters_right = tmpPoly.SkipWhile (v => v != tailInsertIndex).ToList ();
-											polies.Add (segment.Concat (inters_right).ToList ());
-										} else {
-											inters_left = tmpPoly.TakeWhile (v => v != headInsertIndex).ToList ();
-											tmpSegment.Reverse ();
-											polies.Add (inters_left.Concat (tmpSegment).ToList ());
-
-											inters_right = tmpPoly.SkipWhile (v => v != headInsertIndex).ToList ();
-											polies.Add (segment.Concat (inters_right).ToList ());
-										}
-									}
-	//										if	previousIntersectionFound = true;
-										segment = new List<int> {pointsNumber};
-										headInsertIndex = (tmpPoly.IndexOf ( lineStartIndex ) < tmpPoly.IndexOf ( lineEndIndex )) ? lineEndIndex : lineStartIndex;
-//										headInsertSegmentPos = Math.Max (tmpPoly.IndexOf ( lines [linesIterator - 1] ), tmpPoly.IndexOf ( lines [linesIterator] ));
-										headInsertSegmentPos = tmpPoly.IndexOf (headInsertIndex);
-
-										previousIntersectedPoly = intersectedPoly;
-									}  // condition if poly was found
-								} // polies list search cycle end 
-							} // condition if segment contains intersection
-							
-							segment = new List<int> {pointsNumber};
-							pointsNumber += 1;
+										inters_right = tmpPoly.SkipWhile (v => v != tailInsertIndex).ToList ();
+										poliesLeft.Add (segment.Concat (inters_right).ToList ());
+									} // condition if poly was found
+//									segment = new List<int> {pointsNumber};
+								}  // polies list search cycle end
+						} // none-segment list intersected
+					segment = new List<int> {pointsNumber};
+					pointsNumber += 1;
 	//					linesIterator += 2;
 	//					currentLineIndex += 2;
 
-					}
-				}
-				linesIterator++;
+				} //if not last line
 			}
+			linesIterator++;
+		}
 		currentLineIndex++;
 		}
-		foreach (var poly in polies) { 
-			Debug.Log ( String.Join( ",", poly.Select( v => v.ToString() ).ToArray() ) );
-			//combi
+		foreach (var poly in poliesLeft) { 
+			Debug.Log ("LeftPolies:\n" + String.Join (",", poly.Select (v => v.ToString ()).ToArray ()));
+		}
+		foreach (var poly in poliesRight) { 
+			Debug.Log ( "RightPolies:\n"+String.Join( ",", poly.Select( v => v.ToString() ).ToArray() ) );
 		}
 	}
 	
