@@ -1,18 +1,15 @@
 ﻿using UnityEngine;
 //using System.Collections;
 
-//Interpolation between points with a Catmull-Rom spline
 using System.Collections.Generic;
 using System;
 using System.Runtime.InteropServices;
-//using System.Collections;
 using System.Linq;
 using UnityEditor;
 
 
 public class Spline : MonoBehaviour
 {
-
 	[StructLayout(LayoutKind.Sequential, Pack=1)]
 	[Serializable]
 	public struct dot2d
@@ -82,13 +79,8 @@ public class Spline : MonoBehaviour
 	{	
 		Gizmos.color = Color.cyan;
 		pointsNumber = 0;
-//		intersectedPoly = 0;
 		lines.Clear ();
-//		polies.Clear ();
 		polies = new List<List<int>> { new List<int> () };
-//		Segment.Clear();
-		//		Points.Clear(Points,0,Points.Length);
-//		Points = new dot2d[400];
 
 		Color[] colors = { Color.red, Color.green, Color.blue  };
 
@@ -112,7 +104,6 @@ public class Spline : MonoBehaviour
 
 
 		int colorSwitch = 0; 
-//		bool skip;
 
 		for (int linesIterator = 1; linesIterator < lines.Count; linesIterator++) {
 			colorSwitch = linesIterator % 3;
@@ -165,15 +156,7 @@ public class Spline : MonoBehaviour
 		Vector2 p2 = controlPointsList[ClampListPos(pos + 1)].position;
 		Vector2 p3 = controlPointsList[ClampListPos(pos + 2)].position;
 
-//		Vector2 newPos;
-
 		Vector2 lastPos = p1;
-
-
-
-//
-//		int inters_position1;
-//		int inters_position2;
 
 		int loops = Mathf.FloorToInt(1f / resolution);
 
@@ -184,20 +167,12 @@ public class Spline : MonoBehaviour
 
 			Vector2 newPos = GetCatmullRomPosition(t, p0, p1, p2, p3);
 
-			//Main intersection cycle
-
-//			Points [ ind ] = new dot2d { x = lastPos.x, y = lastPos.y };
-
-		
 			AddPoint(lastPos);
 			lines.Add(pointsNumber++);
 
 			lastPos = newPos;
 			}
-//			Gizmos.DrawLine(lastPos, newPos);
 		}
-	//		Points [ ind ] = new dot2d { x = lastPos.x, y = lastPos.y };
-
 
 
 	void AddIntersections () {
@@ -225,10 +200,6 @@ public class Spline : MonoBehaviour
 		bool previousIntersectionFound = false;
 		int currentPolyIndex = 0;
 
-
-		//			for (int c = 1; c < ind-3 ; c++) {
-
-//		for (int CurrentLineIndex = 4; CurrentLineIndex < PointsNumber; CurrentLineIndex++) {
 		int currentLineIndex = 2;
 		segment = new List<int> {0,1};
 
@@ -242,15 +213,11 @@ public class Spline : MonoBehaviour
 
 				lineToCheck.Start = points[ lines[ linesIterator-1 ]]; //
 				lineToCheck.End   = points[ lines[ linesIterator   ]]; //PointIndex
-				//				Debug.Log ("Lines ["+(c-1)+"] "+Points[ Lines [c-1] ].x+"/"+Points[ Lines[c-1] ].y);
-				//				Handles.Label (new Vector3(newPos.x, newPos.y, 0), PointsNumber.ToString());
+
 				currentLine.Start = points[ lines[ currentLineIndex-1 ]];
 				currentLine.End   = points[ lines[ currentLineIndex  ]];
 
-
-				//(new Line { Start.x = lastPos.x, Start.y = lastPos.y, End.x = newPos.x, End.y = newPos.y })
-				if ( CheckIntersections ( currentLine, lineToCheck ) ) 
-				{ 
+				if ( CheckIntersections ( currentLine, lineToCheck ) ) { 
 					
 					if (!((currentLineIndex == (lines.Count - 1)) && (linesIterator == 1))) {
 						GetIntersectionXY (out intersectionXY, lineToCheck.Start, lineToCheck.End, currentLine.Start, currentLine.End);
@@ -260,13 +227,11 @@ public class Spline : MonoBehaviour
 						var lineStartIndex = lines [ linesIterator - 1 ];
 						var lineEndIndex   = lines [ linesIterator 	   ];
 
-						AddPoint (intersectionXY); //161
+						AddPoint (intersectionXY); 
 						lines.Insert (currentLineIndex, pointsNumber);
 						lines.Insert (linesIterator, pointsNumber);
 						segment.Add(pointsNumber);
 
-
-						//						newPos = IntersectionXY;
 //										pointsNumber += 1;
 						linesIterator += 1; // was +2
 						currentLineIndex += 2;
@@ -275,24 +240,14 @@ public class Spline : MonoBehaviour
 				
 						// segment self-intersections detection 
 //						Debug.Log ("lines[ linesIterator-1 ]/pointsNumber: "+lines[ linesIterator-1 ].ToString()+"/"+pointsNumber);
-						if (segment.Contains( lineEndIndex )) { //Segment.Find(v => v == LinesIterator-2
-							////						inters_position1 = Segment.IndexOf(c);
-//							Debug.Log(lines[ linesIterator-1 ]);
-								inters_left  = segment.TakeWhile ( v => v != lineEndIndex ).ToList();//Lines[ LinesIterator ] //PointsNumber ).ToList(); //(inters_position1); 
-								inters_right = segment.SkipWhile ( v => v != lineEndIndex ).ToList();//.Skip (1);
-		//						CurrentPolyIndex = 
+						if (segment.Contains( lineEndIndex )) { 
+								inters_left  = segment.TakeWhile ( v => v != lineEndIndex ).ToList(); 
+								inters_right = segment.SkipWhile ( v => v != lineEndIndex ).ToList();
 								polies.Add (inters_right);
-		//							Polies [ IntersectedPolyIndex+1 ] = inters_right;
-		//						var ReversedRightList = inters_right;
-		//							ReversedRightList.Reverse ();
 								inters_right.Reverse ();
-		//						Polies [IntersectedPolyIndex+2] = inters_left.Union(inters_right).ToList();//inters_right.Reverse() ).ToList();
 								polies.Add ( inters_left.Union(inters_right).ToList() );
-		////						IntersectedPolyIndex+=2;
-		////						Polies [CurrentPolyIndex] = Segment;
-		//						Segment = inters_left;
-//								segment.Clear();
-								segment = new List<int> {pointsNumber};//.Add (PointsNumber);//new List<int> {PointsNumber};
+
+								segment = new List<int> {pointsNumber};
 								previousIntersectedPoly = polies.Count() - 2; //+= 2;
 								selfCross = true;
 						} 
@@ -306,20 +261,15 @@ public class Spline : MonoBehaviour
 										intersectedPoly = polyIndex;
 										var tmpPoly = polies [intersectedPoly];
 										var tmpSegment = segment;
-										//if (PreviousIntersectionFound) {
 
 										tailInsertIndex = (tmpPoly.IndexOf ( lineStartIndex ) < tmpPoly.IndexOf ( lineEndIndex )) ? lineEndIndex : lineStartIndex;
-											//(tmpPoly.Where ((v, v1) => v == lines [linesIterator - 1] && v1 == lines [linesIterator]).Count == 2) ? lines [linesIterator] : lines [linesIterator - 1];
-
 
 										if (intersectedPoly == previousIntersectedPoly) {
 
-											//find insertion. position
+											//find insertion position
 											tailInsertSegmentPos = tmpPoly.IndexOf (tailInsertIndex);
 												// if direct dot elements order 
 												if (tailInsertSegmentPos > headInsertSegmentPos) {
-	//													var tmpPoly = polies [intersectedPoly];
-
 														tmpPoly.RemoveRange (headInsertSegmentPos, tailInsertSegmentPos - headInsertSegmentPos);
 														tmpPoly.InsertRange (headInsertSegmentPos, segment);
 
@@ -327,7 +277,7 @@ public class Spline : MonoBehaviour
 														polies.Add (tmpPoly.Skip (headInsertSegmentPos).TakeWhile (ind => ind != tailInsertIndex).Concat(tmpSegment).ToList() ); 
 														polies [intersectedPoly] = tmpPoly;//polies.Add (tmpPoly);
 												} else {
-	//											reversed dot elements order		(direct Segment order)
+	//											reversed dot elements order	(direct Segment order)
 														polies.Add (tmpSegment.Concat(tmpPoly.Skip (tailInsertSegmentPos).TakeWhile (ind => ind != headInsertIndex)).ToList() );
 
 														tmpPoly.RemoveRange (0, headInsertSegmentPos);
@@ -370,7 +320,6 @@ public class Spline : MonoBehaviour
 		}
 		foreach (var poly in polies) { 
 			Debug.Log ( String.Join( ",", poly.Select( v => v.ToString() ).ToArray() ) );
-			//vector
 		}
 	}
 	
