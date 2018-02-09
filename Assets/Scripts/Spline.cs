@@ -312,40 +312,47 @@ public class Spline : MonoBehaviour
 											//(tmpPoly.Where ((v, v1) => v == lines [linesIterator - 1] && v1 == lines [linesIterator]).Count == 2) ? lines [linesIterator] : lines [linesIterator - 1];
 
 
-										if (intersectedPoly == previousIntersectedPoly) {
+									if (intersectedPoly == previousIntersectedPoly) {
 
-											//find insertion. position
-											tailInsertSegmentPos = tmpPoly.IndexOf (tailInsertIndex);
-												// if direct dot elements order 
-												if (tailInsertSegmentPos > headInsertSegmentPos) {
-	//													var tmpPoly = polies [intersectedPoly];
+										//find insertion. position
+										tailInsertSegmentPos = tmpPoly.IndexOf (tailInsertIndex);
+										// if direct dot elements order 
+										if (tailInsertSegmentPos > headInsertSegmentPos) {
+											//													var tmpPoly = polies [intersectedPoly];
 
-														tmpPoly.RemoveRange (headInsertSegmentPos, tailInsertSegmentPos - headInsertSegmentPos);
-														tmpPoly.InsertRange (headInsertSegmentPos, segment);
+											tmpPoly.RemoveRange (headInsertSegmentPos, tailInsertSegmentPos - headInsertSegmentPos);
+											tmpPoly.InsertRange (headInsertSegmentPos, segment);
 
-														tmpSegment.Reverse ();
-														polies.Add (tmpPoly.Skip (headInsertSegmentPos).TakeWhile (ind => ind != tailInsertIndex).Concat(tmpSegment).ToList() ); 
-														polies [intersectedPoly] = tmpPoly;//polies.Add (tmpPoly);
-												} else {
-	//											reversed dot elements order		(direct Segment order)
-														polies.Add (tmpSegment.Concat(tmpPoly.Skip (tailInsertSegmentPos).TakeWhile (ind => ind != headInsertIndex)).ToList() );
-
-														tmpPoly.RemoveRange (0, headInsertSegmentPos);
-														tmpSegment.Reverse ();
-														polies [intersectedPoly] = tmpSegment.Concat(tmpPoly).ToList(); //polies.Add ( tmpSegment+tmpPoly );
-			//											tmpPoly.InsertRange (headInsertSegmentPos, Segment);
-												}
-										} 
-										else 
-										{
-	//										Add left and right parts
-											inters_left  = tmpPoly.TakeWhile ( v => v != tailInsertIndex ).ToList ();
 											tmpSegment.Reverse ();
-											polies.Add ( inters_left.Concat(tmpSegment).ToList() );
+											polies.Add (tmpPoly.Skip (headInsertSegmentPos).TakeWhile (ind => ind != tailInsertIndex).Concat (tmpSegment).ToList ()); 
+											polies [intersectedPoly] = tmpPoly;//polies.Add (tmpPoly);
+										} else {
+											//											reversed dot elements order		(direct Segment order)
+											polies.Add (tmpSegment.Concat (tmpPoly.Skip (tailInsertSegmentPos).TakeWhile (ind => ind != headInsertIndex)).ToList ());
 
-											inters_right = tmpPoly.SkipWhile ( v => v != tailInsertIndex ).ToList ();
-											polies.Add ( segment.Concat( inters_right ).ToList() );
+											tmpPoly.RemoveRange (0, headInsertSegmentPos);
+											tmpSegment.Reverse ();
+											polies [intersectedPoly] = tmpSegment.Concat (tmpPoly).ToList (); //polies.Add ( tmpSegment+tmpPoly );
+											//											tmpPoly.InsertRange (headInsertSegmentPos, Segment);
 										}
+									} else {
+										//										Add left and right parts
+										if (tailInsertSegmentPos > headInsertSegmentPos) {
+											inters_left = tmpPoly.TakeWhile (v => v != tailInsertIndex).ToList ();
+											tmpSegment.Reverse ();
+											polies.Add (inters_left.Concat (tmpSegment).ToList ());
+
+											inters_right = tmpPoly.SkipWhile (v => v != tailInsertIndex).ToList ();
+											polies.Add (segment.Concat (inters_right).ToList ());
+										} else {
+											inters_left = tmpPoly.TakeWhile (v => v != headInsertIndex).ToList ();
+											tmpSegment.Reverse ();
+											polies.Add (inters_left.Concat (tmpSegment).ToList ());
+
+											inters_right = tmpPoly.SkipWhile (v => v != headInsertIndex).ToList ();
+											polies.Add (segment.Concat (inters_right).ToList ());
+										}
+									}
 	//										if	previousIntersectionFound = true;
 										segment = new List<int> {pointsNumber};
 										headInsertIndex = (tmpPoly.IndexOf ( lineStartIndex ) < tmpPoly.IndexOf ( lineEndIndex )) ? lineEndIndex : lineStartIndex;
