@@ -74,7 +74,7 @@ public class Spline : MonoBehaviour
 		Gizmos.color = Color.cyan;
 		pointsNumber = 0;
 		lines.Clear ();
-		segments = new List< List<int> > { new List<int> () };
+//		segments = new List< List<int> > { new List<int> () };
 		polies = new List< List<int> > { new List<int> () };
 
 		Color[] colors = { Color.red, Color.green, Color.blue  };
@@ -116,7 +116,9 @@ public class Spline : MonoBehaviour
 //			start = line;
 			Gizmos.DrawLine ( points[ lines [linesIterator-1] ], points[ lines [linesIterator] ]);
 		}
+
 		FillSegments();
+		CombinePolies ();
 	}
 
 
@@ -238,53 +240,74 @@ public class Spline : MonoBehaviour
 			tmpLines.RemoveRange (0, intersectionPos); 
 		}
 //			segments.AddRange ( tmpLines.GetRange( 0, intersectionPos+1 ) );
-		segments.Add (tmpLines);
-//		Debug.Log("Last segment: "+String.Join( ",", tmpLines.Select( v => v.ToString() ).ToArray() ) );
+//		segments.Add (tmpLines);
 
+//		Debug.Log ( "Segments length: "+segments.Count() );		
+//		Debug.Log("Last segment: " + String.Join( ",", tmpLines.Select( v => v.ToString() ).ToArray() ) );
+//
 		////
-		Debug.Log ( "Segments length: "+segments.Count() );		
-		foreach (var segment in segments) { 
-			Debug.Log ( String.Join( "/", segment.Select( v => v.ToString() ).ToArray() ) );
-		}
+//		foreach (var segment in segments) { 
+//			Debug.Log ( String.Join( "/", segment.Select( v => v.ToString() ).ToArray() ) );
+//		}
 	}	
 
-	void CompoundPolies () {
+	void CombinePolies () {
 
-		for (int i = 0; i < segments.Count; i++ ) {
-			int elementsCount 	= segments [i].Count;
-			int elementToFind 	= segments [i] [elementsCount - 1];
-			int previousElement = segments [i] [elementsCount - 2];
+		for (int segmIndex = 0; segmIndex < segments.Count-2; segmIndex++ ) {
 
+			int elementsCount 	= segments [segmIndex].Count;
+//			Debug.Log (String.Join (",", segments [segmIndex].Select (v => v.ToString ()).ToArray ()));
+//			Debug.Log(elementsCount);
+			int elementToFind = segments[segmIndex][elementsCount-1];
+			//			int previousElement = segments [segmIndex] [elementsCount - 2];
 
+			var enumerateThrough = segments;
+			enumerateThrough.Remove ( segments [segmIndex] );
+			enumerateThrough.Remove( segments[segmIndex+1] ); //Range(0, segments.Count - 1).
+
+			Debug.Log(enumerateThrough.Count);
+
+			foreach ( List<int> sideSegment in enumerateThrough ) {
+				if ( ! sideSegment.Contains (elementToFind)) continue;
+				Debug.Log ( String.Join( "/", sideSegment.Select( v => v.ToString() ).ToArray() ) );
+//				var angle = FindDirection (segments [segmIndex], sideSegment );
+//				Debug.Log ("Angle between "+String.Join( ",", segments [segmIndex].Select( v => v.ToString() ).ToArray() )+" and "
+//					+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() )+" is "+angle.ToString() );
+			}
 		}
 	}
 
-	void FindNextLeaf (out List<int> hull, List <int> arc, int stopElement, float direction) {
 
-		segmentAngle storedSegment = new { Angle = 888, Segment = List<int>() };
+	List<int> FindNextSegment (List <int> arc, int stopElement, float direction) {
 
-		for (int segmIndex = 0; segmIndex < segments.Count; segmIndex ++ ) {
-			if (segments[segmIndex].Contains( arc.Last )) { 
+		segmentAngle storedSegment = new segmentAngle { Angle = 888f, Segment = new List<int>{} };
 
-				if ( arc == segments [segmIndex] ) continue;
+		var adjacentSegments = segments; //.Except(arc);
 
-				Line target;
+		adjacentSegments.Remove(arc);
 
-				if (segments [segmIndex] [0] = arc.Last ) { //elementToFind) {
-					target = new Line (points [segments [segmIndex] [0]], points [segments [segmIndex] [1]]);
-				}
-				else
-				{ 	
-					var segmElementsNumber = segments [segmIndex].Count;
-					target = new Line (points [segments [segmIndex] [segmElementsNumber]], points [segments [segmIndex] [segmElementsNumber - 1]]);		
-				};
+		for (int segmIndex = 0; segmIndex < adjacentSegments.Count; segmIndex ++ ) {
+			if (adjacentSegments[segmIndex].Contains( arc.Last() )) { 
 
-//				int elementsCount 	= arc.Count;
-				int previousElement = arc [ arc.Count - 2 ];
+//				if ( arc == segments [segmIndex] ) continue;
 
-
-				var baseline = new Line ( points [ previousElement ], points [ arc.Last ]);
-				var angle = Math.Abs( FindDirection ( baseline, target ) ); //use reverse direction
+//				Line target;
+//
+//				if (segments [segmIndex] [0] = arc.Last ) { //elementToFind) {
+//					target = new Line (points [segments [segmIndex] [0]], points [segments [segmIndex] [1]]);
+//				}
+//				else
+//				{ 	
+////					var segmElementsNumber = segments [segmIndex].Count;
+//					target = new Line (points [ segments [segmIndex].Last ], points [segments [segmIndex] [ segments [segmIndex].Count - 1]]);		
+//				};
+//
+////				int elementsCount 	= arc.Count;
+//				int previousElement = arc [ arc.Count - 2 ];
+//
+//
+//				var baseline = new Line ( points [ previousElement ], points [ arc.Last ]);
+				var angle = Math.Abs( FindDirection ( arc, adjacentSegments[segmIndex] ) ); //use reverse direction
 
 				if (direction != Math.Sign(angle) ) continue;
 
@@ -296,21 +319,41 @@ public class Spline : MonoBehaviour
 				}
 			}
 		}
-		hull.AddRange( storedSegment.Segment );
-
-		if (arc.Last != stopElement) {
-			FindNextLeaf ( hull, storedSegment.Segment, stopElement, direction );
+		if ( arc.Last() != stopElement) { 
+			storedSegment.Segment.AddRange( FindNextSegment ( storedSegment.Segment, stopElement, direction ));
 		}
+		return storedSegment.Segment;
 	}
 
-	float FindDirection ( Line line1, Line line2 ) {
 
-		var baseline = new Vector2 (line1.End.x - line1.Start.x, line1.End.y - line1.Start.y);
-		var target = new Vector2 (line2.End.x - line2.Start.x, line2.End.y - line2.Start.y);
-		float angle = Vector2.SignedAngle (baseline, target);
+
+	float FindDirection ( List<int> baseLineSegment, List<int> targetLineSegment ) {//Line line1, Line line2 ) {
+
+
+		int[] elementIndex ;
+
+		if (targetLineSegment [0] == baseLineSegment.Last()) //determines a side which the target segment is connected from 
+			elementIndex = new int[2] { 0, 1 };
+		else
+			elementIndex = new int[2] { targetLineSegment.Count, targetLineSegment.Count - 1 }; 
+		
+		
+		var targetLine = new Line { Start = points [ targetLineSegment[ elementIndex[0] ]], End = points [ targetLineSegment[ elementIndex[1] ]] };
+
+		int previousElement = baseLineSegment [ baseLineSegment.Count - 2 ];
+
+		var baseLine = new Line { Start = points [ previousElement ], End = points [ baseLineSegment.Last() ] };
+
+		var baseLineVect = new Vector2 (baseLine.End.x - baseLine.Start.x, baseLine.End.y - baseLine.Start.y);
+		var targetLineVect = new Vector2 (targetLine.End.x - targetLine.Start.x, targetLine.End.y - targetLine.Start.y);
+
+		float angle = Vector2.SignedAngle (baseLineVect, targetLineVect);
 		Debug.Log ("angle: "+angle);
+
 		return angle;
 	}
+
+
 
 	bool CheckIntersections ( Line l1, Line l2 )
 	{
@@ -332,10 +375,10 @@ public class Spline : MonoBehaviour
 	//	public bool GetIntersectionXY (out Vector2 intersection, Vector2 linePoint1, Vector2 lineVec1, Vector2 linePoint2, Vector2 lineVec2){
 	public static bool GetIntersectionXY(
 		out Vector2 intersection,	
-		Vector2 p1,
-		Vector2 p2,
-		Vector2 p3,
-		Vector3 p4
+			Vector2 p1,
+			Vector2 p2,
+			Vector2 p3,
+			Vector3 p4
 	)
 	{
 		intersection = Vector2.zero;
