@@ -69,13 +69,14 @@ public class Spline : MonoBehaviour
 		public List<int> Segment;
 	}
 
+//	public float angle;
+
 	void OnDrawGizmos()
 	{	
 		Gizmos.color = Color.cyan;
 		pointsNumber = 0;
 		lines.Clear ();
-//		segments = new List< List<int> > { new List<int> () };
-		polies = new List< List<int> > { new List<int> () };
+//		polies = new List< List<int> > { new List<int> () };
 
 		Color[] colors = { Color.red, Color.green, Color.blue  };
 
@@ -119,6 +120,7 @@ public class Spline : MonoBehaviour
 
 		FillSegments();
 		CombinePolies ();
+
 	}
 
 
@@ -225,102 +227,143 @@ public class Spline : MonoBehaviour
 
 	void FillSegments() {
 
+		segments.Clear ();
 		var tmpLines = lines;
-		var intStartIndex = pointsNumber - 2;//lines.Count - points.Length;
-//		intStartIndex = points.Length - intStartIndex * 2 - 1;
-		int intersectionPos;
+		var intStartIndex = (int) lines.Last () - 1;//pointsNumber - 2;//lines.Count - points.Length;
+//		Debug.Log ( "Lines: "+ String.Join( ",", lines.Select( v => v.ToString() ).ToArray() ) );	
+//				Debug.Log (intStartIndex);
+		////		intStartIndex = points.Length - intStartIndex * 2 - 1;
+		int intersectionPos = -1;
 		while ( (intersectionPos = tmpLines.FindIndex (1, e => e > intStartIndex)) > -1 ) {
-//			var intersectionPos = tmpLines.FindIndex (1, e => e > intStartIndex);
-//			Debug.Log (" Trying to find: "+intStartIndex+" intersectionPos: "+intersectionPos);
+		//			var intersectionPos = tmpLines.FindIndex (1, e => e > intStartIndex);
+		//			Debug.Log (" Trying to find: "+intStartIndex+" intersectionPos: "+intersectionPos);
 
-			segment = tmpLines.GetRange(0,intersectionPos+1);
-//			Debug.Log (" Found segment: " + String.Join( ",", segment.Select( v => v.ToString() ).ToArray()) ) ;
+			try {
+				segment = tmpLines.GetRange( 0, Math.Min (intersectionPos+1, tmpLines.Count)).ToList();
+			}
+			catch {
+				Debug.LogError("Error: GetRange( 0, Math.Min ("+intersectionPos+1+", "+(tmpLines.Count-1)+")");
+			}
+
+			//				Debug.Log (" Found segment: " + String.Join( ",", segment.Select( v => v.ToString()).ToArray()));
+
 			segments.Add ( segment ); 
 
+			try {
 			tmpLines.RemoveRange (0, intersectionPos); 
+			}
+			catch {
+				Debug.LogError ("Error in RemoveRange"); 
+			}
 		}
 //			segments.AddRange ( tmpLines.GetRange( 0, intersectionPos+1 ) );
 //		segments.Add (tmpLines);
 
-//		Debug.Log ( "Segments length: "+segments.Count() );		
-//		Debug.Log("Last segment: " + String.Join( ",", tmpLines.Select( v => v.ToString() ).ToArray() ) );
-//
-		////
+		//		Debug.Log ( "Segments length: "+segments.Count() );		
+		//		Debug.Log("Last segment: " + String.Join( ",", tmpLines.Select( v => v.ToString() ).ToArray() ) );
 //		foreach (var segment in segments) { 
-//			Debug.Log ( String.Join( "/", segment.Select( v => v.ToString() ).ToArray() ) );
+//			Debug.Log ( "Segments: "+String.Join( "/", segment.Select( v => v.ToString() ).ToArray() ) );
 //		}
 	}	
 
 	void CombinePolies () {
 
-		for (int segmIndex = 0; segmIndex < segments.Count-2; segmIndex++ ) {
+//		Debug.Log("Segments.Count: "+segments.Count);
+		Debug.Log("Constructed poly clockwise: "+String.Join( ",", FindNextSegment(segments [1],segments [0].Last(),1).Select( v => v.ToString() ).ToArray()));
+//		for (int segmIndex = 0; segmIndex < segments.Count; segmIndex++ ) {
+//
+//			int elementsCount 	= segments [segmIndex].Count;
+//		//			Debug.Log (String.Join (",", segments [segmIndex].Select (v => v.ToString ()).ToArray ()));
+//		//			Debug.Log(elementsCount);
+//			int elementToFind = segments[segmIndex].Last();//[elementsCount-1];
+//			//			int previousElement = segments [segmIndex] [elementsCount - 2];
+//
+//			List<List<int>> segmentsWOcurrent = segments;
+//			var currentSegment = segments [segmIndex];
+//	//			Debug.Log ("*****************"+segmIndex);
+//		//			Debug.Log ( String.Join (",", enumerateThrough.Select (v => v.ToString ()).ToArray ()));
+//			segmentsWOcurrent.Remove(currentSegment);
+		//			{				Debug.LogWarning ("ElementToFind: "+elementToFind+"   Removed from segments: "+String.Join( ",", currentSegment.Select( v => v.ToString() ).ToArray() ));
+		//			};
+		//			try {
+		//				enumerateThrough.RemoveAt(segmIndex);// ( segments [segmIndex].ToList() );
+		//			}
+		//			catch {
+		//				Debug.LogError ("Error: Can't remove segments. ");
+		//			}
 
-			int elementsCount 	= segments [segmIndex].Count;
-//			Debug.Log (String.Join (",", segments [segmIndex].Select (v => v.ToString ()).ToArray ()));
-//			Debug.Log(elementsCount);
-			int elementToFind = segments[segmIndex][elementsCount-1];
-			//			int previousElement = segments [segmIndex] [elementsCount - 2];
+			//			enumerateThrough.Remove ( segments [segmIndex+1] ); //Range(0, segments.Count - 1).
 
-			var enumerateThrough = segments;
-			enumerateThrough.Remove ( segments [segmIndex] );
-			enumerateThrough.Remove( segments[segmIndex+1] ); //Range(0, segments.Count - 1).
+	//			Debug.Log(enumerateThrough.Count);
 
-			Debug.Log(enumerateThrough.Count);
+//			foreach ( List<int> sideSegment in segmentsWOcurrent ) {
+//
+//				if ( sideSegment.Contains(elementToFind) == false ) { 
+//					Debug.Log ("Skipped: "+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() ));
+//					continue;
+//				}
+			//				Debug.Log ( String.Join( "/", sideSegment.Select( v => v.ToString()).ToArray()));
 
-			foreach ( List<int> sideSegment in enumerateThrough ) {
-				if ( ! sideSegment.Contains (elementToFind)) continue;
-				Debug.Log ( String.Join( "/", sideSegment.Select( v => v.ToString() ).ToArray() ) );
-//				var angle = FindDirection (segments [segmIndex], sideSegment );
-//				Debug.Log ("Angle between "+String.Join( ",", segments [segmIndex].Select( v => v.ToString() ).ToArray() )+" and "
+//				float angle = FindDirection ( currentSegment, sideSegment );
+//			Debug.Log("Constructed poly clockwise: "+String.Join( ",", FindNextSegment(currentSegment).Select( v => v.ToString() ).ToArray()));
+//				Debug.Log ("Angle between "+String.Join( ",", currentSegment.Select( v => v.ToString() ).ToArray() )+" and "
 //					+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() )+" is "+angle.ToString() );
-			}
-		}
+//			}
+//		}
 	}
 
 
 	List<int> FindNextSegment (List <int> arc, int stopElement, float direction) {
 
-		segmentAngle storedSegment = new segmentAngle { Angle = 888f, Segment = new List<int>{} };
+		segmentAngle storedSegment;
+		storedSegment = new segmentAngle { Angle = 888f, Segment = new List<int>(0) };
 
 		var adjacentSegments = segments; //.Except(arc);
 
-		adjacentSegments.Remove(arc);
+		var segmentNode = arc.Last();
+	
+//		Debug.LogWarning("segmentNode = arc.Last(); issues");
 
-		for (int segmIndex = 0; segmIndex < adjacentSegments.Count; segmIndex ++ ) {
-			if (adjacentSegments[segmIndex].Contains( arc.Last() )) { 
+		Debug.LogWarning("Started");
 
-//				if ( arc == segments [segmIndex] ) continue;
+		try {
+			adjacentSegments.Remove(arc);
+		}
+		catch {
+			Debug.LogWarning ("adjacentSegments.Remove(arc) issues");
+		}
+//		for (int segmIndex = 0; segmIndex < adjacentSegments.Count; segmIndex ++ ) {
+		foreach (var currentSegment in adjacentSegments) {
+			bool cont;
 
-//				Line target;
-//
-//				if (segments [segmIndex] [0] = arc.Last ) { //elementToFind) {
-//					target = new Line (points [segments [segmIndex] [0]], points [segments [segmIndex] [1]]);
-//				}
-//				else
-//				{ 	
-////					var segmElementsNumber = segments [segmIndex].Count;
-//					target = new Line (points [ segments [segmIndex].Last ], points [segments [segmIndex] [ segments [segmIndex].Count - 1]]);		
-//				};
-//
-////				int elementsCount 	= arc.Count;
-//				int previousElement = arc [ arc.Count - 2 ];
-//
-//
-//				var baseline = new Line ( points [ previousElement ], points [ arc.Last ]);
-				var angle = Math.Abs( FindDirection ( arc, adjacentSegments[segmIndex] ) ); //use reverse direction
+			try { cont = currentSegment.Contains( segmentNode ); }
+			catch {
+				Debug.LogWarning ("currentSegment.Contains( segmentNode ) issues");
+			} 
+			if (currentSegment.Contains( segmentNode )) { 
 
-				if (direction != Math.Sign(angle) ) continue;
+				var angle = FindDirection ( arc, currentSegment ); //use reverse direction
+
+				if (direction != Math.Sign (angle)) { 
+					Debug.Log ("Sign doesn't match: direction = "+direction.ToString()+"  angle = "+Math.Sign (angle));//+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() ));
+					continue;
+				}
 
 				var angleAbs = Math.Abs (angle);
 
 				if ( angleAbs < storedSegment.Angle ) { 
 					storedSegment.Angle = angleAbs;
-					storedSegment.Segment = segments [segmIndex];
+					storedSegment.Segment = currentSegment;
 				}
 			}
 		}
-		if ( arc.Last() != stopElement) { 
-			storedSegment.Segment.AddRange( FindNextSegment ( storedSegment.Segment, stopElement, direction ));
+//		Debug.LogWarning ("Segments cycle finished. Checking  arc.Last() and stopElement: "+storedSegment.Segment.Last().ToString()+" =? "+stopElement.ToString());
+		if ( storedSegment.Segment.Last() != stopElement) { 
+			Debug.LogWarning ("Next Recursive cycle");
+			var nextSegment = FindNextSegment (storedSegment.Segment, stopElement, direction);
+			if (nextSegment != new List<int>()) {
+				storedSegment.Segment.AddRange (nextSegment);//(FindNextSegment (storedSegment.Segment, stopElement, direction));
+			}
 		}
 		return storedSegment.Segment;
 	}
@@ -329,27 +372,29 @@ public class Spline : MonoBehaviour
 
 	float FindDirection ( List<int> baseLineSegment, List<int> targetLineSegment ) {//Line line1, Line line2 ) {
 
-
-		int[] elementIndex ;
-
-		if (targetLineSegment [0] == baseLineSegment.Last()) //determines a side which the target segment is connected from 
-			elementIndex = new int[2] { 0, 1 };
+		int[] elementIndex;
+//		try {
+			if ( targetLineSegment.First() == baseLineSegment.Last()) //determines a side which the target segment is connected from 
+			elementIndex = new int[] { 0, 1 };
 		else
-			elementIndex = new int[2] { targetLineSegment.Count, targetLineSegment.Count - 1 }; 
-		
-		
+			elementIndex = new int[] { targetLineSegment.Count -1, targetLineSegment.Count -2 }; 
+//		}
+//		catch {
+//			Debug.LogError ("Error in FindDirection");
+//		}
+
 		var targetLine = new Line { Start = points [ targetLineSegment[ elementIndex[0] ]], End = points [ targetLineSegment[ elementIndex[1] ]] };
 
 		int previousElement = baseLineSegment [ baseLineSegment.Count - 2 ];
-
-		var baseLine = new Line { Start = points [ previousElement ], End = points [ baseLineSegment.Last() ] };
+		var baseLine = new Line { End = points [ previousElement ], Start = points [ baseLineSegment.Last() ] };
 
 		var baseLineVect = new Vector2 (baseLine.End.x - baseLine.Start.x, baseLine.End.y - baseLine.Start.y);
 		var targetLineVect = new Vector2 (targetLine.End.x - targetLine.Start.x, targetLine.End.y - targetLine.Start.y);
 
 		float angle = Vector2.SignedAngle (baseLineVect, targetLineVect);
-		Debug.Log ("angle: "+angle);
-
+		Debug.Log ("From "+previousElement+"-"+baseLineSegment.Last()+" To "+targetLineSegment[ elementIndex[0] ]+"-"+targetLineSegment[ elementIndex[1] ]);
+		Debug.Log (angle.ToString ());
+		
 		return angle;
 	}
 
