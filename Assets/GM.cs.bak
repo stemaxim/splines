@@ -1,0 +1,799 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GM : MonoBehaviour {
+
+
+	public float drawDelay = 0.1f;
+
+	// Use this for initialization
+	void Start () {
+		GenerateControlPoints (countControlPoints);
+		//CreateRotatePoints();
+		StartCoroutine (GenerateStart());
+	}
+
+	void GenerateControlPoints(int count = 20){
+		controlPointsList.Clear ();
+		Vector2 v = Vector2.zero;
+		for (int i = 0; i < count; i++) {
+			/*if (i == 0) {
+				v = Vector3.zero;// Random.insideUnitCircle * radiusField;
+			} else {
+				v = controlPointsList [i - 1].position + (Vector3)Random.insideUnitCircle * radiusField * .5f;
+				while (v.sqrMagnitude > radiusField * radiusField) {
+					v = controlPointsList [i - 1].position + (Vector3)Random.insideUnitCircle * radiusField * .5f;
+				}
+				//v = Random.insideUnitCircle * radiusField;
+			}/**/
+			v = Random.insideUnitCircle * radiusField;
+
+
+			GameObject go = Instantiate (emptyPrefab, v, Quaternion.identity)as GameObject;
+			go.name = "EP" + i.ToString ();
+			//go.transform.localScale = Vector3.one * Random.Range (0.8f, 1.2f);
+			/*if (i == 0) {
+				go.GetComponent<Rigidbody2D> ().isKinematic = true;
+			}/**/
+			controlPointsList.Add (go.transform);
+		}
+	}
+
+
+	IEnumerator GenerateStart(){
+		yield return null;
+		//yield return new WaitForSeconds(10f);
+		for (int i = 0; i < controlPointsList.Count; i++){
+			DisplayCatmullRomSpline(i);
+		}
+
+		lineRenderer.loop = false;
+		lineRenderer.positionCount = 1;
+		lineRenderer.SetPosition (0, point[0]);
+		for (int i = 1; i < point.Count; i++) {			
+			//Gizmos.DrawLine ( Points[ Lines [c1-1] ], Points[ Lines [c1] ]);
+			yield return new WaitForSeconds(drawDelay);
+
+			lineRenderer.positionCount = i + 1;
+			lineRenderer.SetPosition (i, point[i]);
+
+		}
+		yield return new WaitForSeconds(drawDelay);
+		lineRenderer.loop = true;
+		yield return new WaitForSeconds(drawDelay);
+		//		FindPole ();
+
+	}
+	
+
+	bool debug = false;
+
+	[StructLayout(LayoutKind.Sequential, Pack=1)]
+	[Serializable]
+	public struct dot2d
+	{
+		public float x; //{ get; set; }
+		public float y; //{ get; set; }
+
+		public dot2d (float x, float y)
+		{
+			this.x = x;
+			this.y = y;
+		}
+	};
+
+	[SerializeField]
+	float resolution = 0.5f;
+
+	//	public dot2d[] Lines;
+	//	public List<dot2d> Points;
+	[SerializeField]
+	//	dot2d[] Points = new dot2d[400];
+	Vector2[] points = new Vector2[400];
+
+	[SerializeField]
+	int pointsNumber;
+
+	public float minX, maxX, minY, maxY;
+	//	Vector2 lastPos;
+	//Has to be at least 4 points
+	public Transform[] controlPointsList;
+
+	public bool isLooping = true;
+
+	//	List<int> Polies; 
+
+	public List <int> lines;
+	//	public List <int> Segment;
+	//	List <int> inters_left;
+	//	List <int> inters_right;
+
+	//	List<int> Lines = new List<int>();
+	//	[SerializeField]
+
+	//	public struct poliesSorted
+	//	{
+	//		public List<int> sortedSegments;
+	//		public List<int> rawSegments;
+	//	}
+
+	public struct poliesInfo
+	{
+		public string hash;
+		public List<int> segments;
+		public float size;
+		public Vector2[] points;
+		public GameObject meshObj;
+	}
+
+	[SerializeField]
+	//	List <List<int>> polies = new List <List<int>>();
+	List < poliesInfo > polies = new List < poliesInfo >();
+
+	//	poliesSorted poliesOrganized = new poliesSorted();
+
+	//	[SerializeField]
+	//	public List <int> segment;
+
+	[SerializeField]
+	public List< List<int> > segments = new List <List<int>>();
+
+	struct Line {
+		public Vector2 Start;
+		public Vector2 End;
+	}
+
+	public struct segmentAngle {
+		public float Angle;
+		public List<int> SegmentNum;
+		public List<int> Segment;
+	}
+
+	//	public  HashSet <List<int>> poliesUniqueness = new HashSet <List<int>>();
+	public  HashSet <string> uniqPolies = new HashSet <string>();
+
+	//	public float angle;
+
+	[SerializeField] GameObject hullPrefab = null;
+
+	void OnDrawGizmos()
+	{	
+		Gizmos.color = Color.cyan;
+		pointsNumber = 0;
+		lines.Clear ();
+
+		//		polies = new List< List<int> > { new List<int> () };
+
+		Color[] colors = { Color.red, Color.green, Color.blue  };
+
+		for (int i = 0; i < controlPointsList.Length; i++)
+		{
+			if ((i == 0 || i == controlPointsList.Length - 2 || i == controlPointsList.Length - 1) && !isLooping)
+			{
+				continue;
+			}
+
+			DisplayCatmullRomSpline(i);
+		}
+
+		//		AddPoint(points[ 0 ]);
+		lines.Add (0);//pointsNumber++);
+		AddIntersections();
+
+
+
+		int colorSwitch = 0; 
+
+		for (int linesIterator = 1; linesIterator < lines.Count; linesIterator++) {
+			colorSwitch = linesIterator % 3;
+
+			Gizmos.color = colors[ colorSwitch ];
+			Handles.Label (new Vector3 (points [lines [linesIterator]].x, points [lines [linesIterator]].y+(-(linesIterator % 2)/5f), 0), lines [linesIterator].ToString());
+
+			Gizmos.DrawLine ( points[ lines [linesIterator-1] ], points[ lines [linesIterator] ]);
+		}
+
+		FillSegments();
+		CombinePolies();
+	}
+
+
+
+	int ClampListPos(int pos)
+	{
+		if (pos < 0)
+		{
+			pos = controlPointsList.Length - 1;
+		}
+
+		if (pos > controlPointsList.Length)
+		{
+			pos = 1;
+		}
+		else if (pos > controlPointsList.Length - 1)
+		{
+			pos = 0;
+		}
+
+		return pos;
+	}
+
+
+	void DisplayCatmullRomSpline(int pos)
+	{		
+
+		Vector2 p0 = controlPointsList[ClampListPos(pos - 1)].position;
+		Vector2 p1 = controlPointsList[pos].position;
+		Vector2 p2 = controlPointsList[ClampListPos(pos + 1)].position;
+		Vector2 p3 = controlPointsList[ClampListPos(pos + 2)].position;
+
+		Vector2 lastPos = p1;
+
+		int loops = Mathf.FloorToInt(1f / resolution);
+
+		for (int i = 1; i <= loops; i++)
+		{
+			float t = i * resolution;
+
+			Vector2 newPos = GetCatmullRomPosition(t, p0, p1, p2, p3);
+
+			AddPoint(lastPos);
+			lines.Add (pointsNumber++);
+			lastPos = newPos;
+		}
+	}
+
+
+	void AddIntersections () {
+
+		Line lineToCheck, currentLine;
+		Vector2 intersectionXY;
+
+		int currentLineIndex = 2;
+		while ( currentLineIndex < lines.Count ) {
+
+			int linesIterator = 1;
+
+			while ( linesIterator < currentLineIndex-2 ) {
+
+				lineToCheck.Start = points[ lines[ linesIterator-1 ]]; //
+				lineToCheck.End   = points[ lines[ linesIterator   ]]; //PointIndex
+
+				currentLine.Start = points[ lines[ currentLineIndex-1 ]];
+				currentLine.End   = points[ lines[ currentLineIndex  ]];
+
+				if ( CheckIntersections ( currentLine, lineToCheck ) ) { 
+
+					if (!((currentLineIndex == (lines.Count - 1)) && (linesIterator == 1))) {
+						GetIntersectionXY (out intersectionXY, lineToCheck.Start, lineToCheck.End, currentLine.Start, currentLine.End);
+
+						Handles.SphereHandleCap (2, intersectionXY, Quaternion.identity, 0.7f, EventType.Repaint);
+
+						var lineStartIndex = lines [ linesIterator - 1 ];
+						var lineEndIndex   = lines [ linesIterator 	   ];
+
+						AddPoint (intersectionXY); 
+						lines.Insert (currentLineIndex, pointsNumber);
+						lines.Insert (linesIterator, pointsNumber);
+						//										pointsNumber += 1;
+						linesIterator += 1; // was +2
+						currentLineIndex += 2;
+						pointsNumber++;
+					}
+				}
+				linesIterator++;
+			}
+			currentLineIndex++;
+		}
+
+		//		foreach (var poly in polies) { 
+		//			Debug.Log ( String.Join( ",", poly.Select( v => v.ToString() ).ToArray() ) );
+		//		}
+		//		foreach (var segment in segments) { 
+		//			Debug.Log ( String.Join( ",", segment.Select( v => v.ToString() ).ToArray() ) );
+		//		}
+	}
+
+
+
+	void FillSegments() {
+
+		List <int> segment = new List<int>();
+		segments.Clear ();
+
+		var tmpLines = lines;
+		int intStartIndex = tmpLines[tmpLines.Count() - 2];
+
+		//		Debug.Log ( "Lines: "+ String.Join( ",", lines.Select( v => v.ToString() ).ToArray() ) );	
+		//				Debug.Log (intStartIndex);
+		////		intStartIndex = points.Length - intStartIndex * 2 - 1;
+		int intersectionPos = -1;
+		while ( (intersectionPos = tmpLines.FindIndex (1, e => e > intStartIndex)) > -1 ) {
+			//			var intersectionPos = tmpLines.FindIndex (1, e => e > intStartIndex);
+			//			Debug.Log (" Trying to find: "+intStartIndex+" intersectionPos: "+intersectionPos);
+
+			try {
+				segment = tmpLines.GetRange( 0, Math.Min (intersectionPos+1, tmpLines.Count)).ToList();
+			}
+			catch {
+				Debug.LogWarning("Error: GetRange( 0, Math.Min ("+intersectionPos+1+", "+(tmpLines.Count-1)+")");
+			}
+
+			//				Debug.Log (" Found segment: " + String.Join( ",", segment.Select( v => v.ToString()).ToArray()));
+
+			segments.Add( segment ); 
+
+			try {
+				tmpLines.RemoveRange (0, intersectionPos); 
+			}
+			catch {
+				Debug.LogWarning ("Error in RemoveRange: Trying to remove elements from 0 to "+intersectionPos.ToString()); 
+			}
+		}
+		tmpLines.Remove (0);
+		segments[0] = tmpLines.Concat(segments.First()).ToList();
+		//		segments.Remove( segments.Last() );
+		//			segments.AddRange ( tmpLines.GetRange( 0, intersectionPos+1 ) );
+		//		segments.Add (tmpLines);
+
+		//		Debug.Log ( "Segments length: "+segments.Count() );		
+		//		Debug.Log("Last segment: " + String.Join( ",", tmpLines.Select( v => v.ToString() ).ToArray() ) );
+		//		foreach (var segment in segments) { 
+		//			Debug.LogError ( "intStartIndex = "+intStartIndex.ToString()+" Segments: "+String.Join( "/", segment.Select( v => v.ToString() ).ToArray() ) );
+		//		}
+	}	
+
+	void CombinePolies () {
+
+		debug = true;
+		//		polies.Clear ();
+		// the following test works
+
+		//	Debug.Log("Constructed poly clockwise: "+String.Join( ",", FindNextSegment(segments [2],segments [2].Last(),1).Select( v => v.ToString() ).ToArray()));
+
+		//				 use this snipet afterwards
+		foreach ( List<int> currentSegment in segments ) {
+
+			if (debug) Debug.LogWarning("---Combine polies start---");
+
+			var poly = FindNextSegment (currentSegment, currentSegment.Last (), 1);
+			Debug.Log ("CombinePolies: trying to output polies results");
+			if (poly != null) {
+				Debug.Log ("Constructed poly clockwise: " + String.Join (",", poly.Select (v => v.ToString ()).ToArray ()));
+				AddPoly (1,poly);
+			}
+
+			var poly1 = FindNextSegment (currentSegment, currentSegment.Last (), -1);
+			if (poly1 != null) {
+				Debug.Log("Constructed poly CounterClockWise: "+String.Join( ",", poly1.Select( v => v.ToString() ).ToArray()));
+
+				AddPoly (-1,poly1);
+			}
+			if (debug)
+				Debug.LogWarning ("///////////////////////////////\n______Polies generated______");
+			FilterPolies ();
+
+		}
+
+		//				if ( sideSegment.Contains(elementToFind) == false ) { 
+		//					Debug.Log ("Skipped: "+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() ));
+		//					continue;
+		//				}
+		//							Debug.Log ( String.Join( "/", sideSegment.Select( v => v.ToString()).ToArray()));
+		//
+		//				float angle = FindDirection ( currentSegment, sideSegment );
+		//			Debug.Log("Constructed poly clockwise: "+String.Join( ",", FindNextSegment(currentSegment).Select( v => v.ToString() ).ToArray()));
+		//				Debug.Log ("Angle between "+String.Join( ",", currentSegment.Select( v => v.ToString() ).ToArray() )+" and "
+		//					+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() )+" is "+angle.ToString() );
+		//							}
+		//						}
+	}
+
+	void FilterPolies() {
+
+		//		poliesSorted tmpPoly; 
+		//		polies.Add{seg poly.Sort()
+
+		//		polies = (poliesSorted) rawPolies.GroupBy(k => k.sortedSegments).Select(k => new poliesSorted {sortedSegments = k.Key, rawSegments = k.First().rawSegments}.ToDictionary(v =>  ) );
+		//		var polies = poliesOrganized.GroupBy( k => k ).Where( c => c.Count() == 1).Select( v => v.Key );//ToDictionary( v => v.Key );
+
+		//		var _polies = new HashSet <List<int>> (polies); //poliesOrganized.Distinct();//.ToList();
+		if (debug) {
+			foreach (var tmpPoly in polies ) {
+				//			foreach (var tmpPoly in poliesUniqueness ) {
+				//				polies.Add (tmpPoly.GroupBy( k => k ).Where( c => c.Count() > 1).Select( v => new List<int> { v.First() }));
+				Debug.Log ("Polies without duplicates: id = "+tmpPoly.hash.ToString()+" segments: "+ String.Join (",", tmpPoly.segments.Select(v => v.ToString()).ToArray())+";");
+				//				Debug.Log ("Polies without duplicates: direction = "+tmpPoly.direction.ToString()+" segments: "+ String.Join (",", tmpPoly.segments.Select(v => v.ToString()).ToArray())+";");
+				createHullMesh (tmpPoly);
+			}
+		}
+		if (debug)
+			Debug.LogWarning ("______Polies filtered______");
+		//		if (debug) Debug.Log("Filterred polies: "+String.Join( ",", polies1.Select( v => v.ToString() ).ToArray()));
+
+		//test mesh
+		//		createHullMesh (polies[0]);
+
+	}
+
+
+	void AddPoly ( int dir, List<int> poly ) {
+
+		float area = 0;
+		//		List <int> segment;
+		var  elements = new List<int>();
+
+		// = new List<int>();
+
+		if ( poly.Count == 0 ) return;
+
+		if ( poly.GroupBy( k => Math.Abs(k) ).Any( g => ( g.Count()>1 ) ) ) return;
+
+
+		//		List<int> tmpPoly = poly.Select( v =>  Math.Abs(v) ).ToList().Sort();
+		//		tmpPoly.Sort();
+		var tmpPoly = poly.Select( v => v = Math.Abs(v) ).ToList();
+
+		tmpPoly.Sort();
+
+		//		Debug.LogError(String.Join (",", tmpPoly.Select( v => (v).ToString() ).ToArray()));
+
+		string uniqId = String.Join (",", tmpPoly.Select( v => v.ToString() ).ToArray());
+
+
+		if (uniqPolies.Add (uniqId)) {
+
+			// polies structure = hash, segments, area
+			elements.Clear ();
+
+			foreach ( int segment in poly ){  
+
+				int index = 0;
+				if (segment < 0) {
+					index = segment * -1;
+					segments [index].Reverse ();
+				}
+				elements.AddRange (segments [index]);
+			}
+
+			//			var dots = elements.Select (v => v = points [v]).ToList();
+			var dots = elements.GroupBy (k => k).Select( v =>  points [ v.First() ] ).ToArray();
+			//			if(debug)Debug.LogError("dots: "+String.Join( ",", elements.Select( v => v.ToString() ).ToArray()));
+
+
+			area = calculateArea (dots);
+
+			if (area < 0) {
+				dots.Reverse ();
+			}
+
+			//			if(debug)Debug.LogError("dots: "+String.Join( ",", elements.Select( v => v.ToString() ).ToArray())+"  poly size: "+area.ToString());
+
+			polies.Add ( new poliesInfo { hash = uniqId, segments = poly, size = area, points = dots } );
+		}
+
+
+		//		tmpPoly.rawSegments.AddRange(poly);
+		//		poly.Sort ();
+		//		tmpPoly.sortedSegments.AddRange(poly);
+
+		//		poliesOrganized = tmpPoly;
+
+		//		if(debug)Debug.LogWarning("Raw polies: "+String.Join( ",", poly.Select( v => v.ToString() ).ToArray()));
+	}
+
+	//
+	float calculateArea (Vector2[] points) {
+
+		float area = 0;
+
+		int arraySize = points.Length;
+
+		Array.Resize (ref points, arraySize+1);
+		points [arraySize] = points [0];
+
+		for ( var i = 0; i < arraySize; i++) {
+			area += points [i].x * points [i + 1].y;
+			area -= points [i].y * points [i + 1].x;
+		}
+
+		return area/2;
+	}
+
+
+	void createHullMesh ( poliesInfo poly ) {
+
+		//		poly.hash
+		GameObject newHull;
+		MeshFilter mFilter;
+		MeshRenderer mRenderer;
+		Mesh mesh = null;
+
+		var dotsNumber = poly.points.Length;
+
+		Triangulator tr = new Triangulator( poly.points );
+		int[] triangles = tr.Triangulate();
+
+		var colors = Enumerable.Repeat (Color.green, dotsNumber).ToArray (); // new Color32[dotsNumber] {Color32(50,100,160,120)};
+
+		var vertices = new Vector3[ dotsNumber ];
+		//		var normals = Vector3.forward [ dotsNumber ]; 
+
+		vertices = poly.points.Select (v => ( new Vector3 (v.x, v.y, 0)) ).ToArray();
+		var normals = Enumerable.Repeat( Vector3.forward, dotsNumber).ToArray (); 
+
+		//		for ( int i = 0; i < dotsNumber; i++ ) {
+		//			vertices [i] = new Vector3 (poly.points[i].x, poly.points[i].y, 0);
+		//		}
+
+
+		//		var m_MeshFilter = (MeshFilter)GetComponent(typeof(MeshFilter));
+		//		var m_MeshRenderer = (MeshRenderer)GetComponent(typeof(MeshRenderer));
+		//		var mesh = m_MeshFilter.sharedMesh;
+
+		//		Debug.LogError ("Vers: "+String.Join( ",", vertices.Select( v => v.ToString() ).ToArray()));
+
+		//		mesh = new Mesh();
+
+		try {
+			Debug.LogError(poly.meshObj.name);
+			newHull = poly.meshObj;
+		}
+		catch {
+			Debug.LogError ("Can't get name");
+			newHull = (GameObject)Instantiate (hullPrefab, gameObject.transform) as GameObject;
+			newHull.name = "hull" + poly.hash;
+		}
+
+		//		if ( poly.meshObj == null ) {
+		//
+		//			newHull = Instantiate (hullPrefab, gameObject.transform);
+		//
+		//			newHull.name = "hull" + poly.hash;
+		//		//			mRenderer = newHull.GetComponent (typeof(MeshRenderer));
+		//		//			mFilter = newHull.GetComponent (typeof(MeshFilter)) as MeshFilter;
+		//
+		//		//			mesh = mFilter.sharedMesh;
+		//
+		//		//			poly.meshObj = newHull;
+		//			Debug.LogWarning(" in null condition ");
+		//
+		//		
+		//		} else {
+		//			Debug.LogWarning(" meshObj found! ");
+		//
+		//			newHull = poly.meshObj;
+		//			mFilter = newHull.GetComponent (typeof(MeshFilter)) as MeshFilter;	
+		//			mesh = mFilter.sharedMesh;
+		//			mesh.Clear ();
+		//		}
+
+		mRenderer = newHull.GetComponent (typeof(MeshRenderer)) as MeshRenderer;
+		mFilter = newHull.GetComponent (typeof(MeshFilter)) as MeshFilter;
+
+		mesh = mFilter.mesh;
+		//		mesh.Clear ();
+		//		Debug.LogWarning (poly.meshObj.name);
+		//		var mesh = GetComponent<MeshFilter>().sharedMesh;
+		//		GetComponent<MeshCollider>().sharedMesh = null;
+		//		GetComponent<MeshFilter>().sharedMesh = null;
+
+		mesh.vertices = vertices;
+		mesh.triangles = triangles;
+		mesh.colors = colors;
+		mesh.RecalculateNormals();
+		mesh.RecalculateBounds();
+		//		GetComponent<MeshFilter> ().sharedMesh = mesh;
+		//		mRenderer.sharedMaterial.color = Color.green;
+		//		mFilter.sharedMesh.Clear();
+		//		mFilter.sharedMesh = mesh;
+
+		//		newHull.GetComponent<Mesh>().
+		//		DestroyImmediate(mesh);
+
+		poly.meshObj = newHull;
+	}
+
+
+
+	List<int> FindNextSegment (List <int> StartSegment, int stopElement, float direction) {
+
+		segmentAngle storedSegment;
+		storedSegment = new segmentAngle { Angle = 888f, SegmentNum = new List<int>(), Segment = new List<int>()};
+		var tmpSegment = new List<int>();
+		int NodeElement = -1;
+
+		//					var adjacentSegments = segments; //.Except(arc);
+
+		var segmentNode = StartSegment.Last();
+
+		//		Debug.LogWarning("segmentNode = arc.Last(); issues");
+
+		//					try {
+		//						adjacentSegments.Remove(StartSegment);
+		//					}
+		//					catch {
+		//						Debug.LogWarning ("adjacentSegments.Remove(arc) issues");
+		//					}
+		//		for (int segmIndex = 0; segmIndex < adjacentSegments.Count; segmIndex ++ ) {
+		foreach (var currentSegment in segments ) { 
+			//			bool cont;
+			//
+			//			try { cont = currentSegment.Contains( segmentNode ); }
+			//			catch {
+			//				Debug.LogWarning ("currentSegment.Contains( segmentNode ) issues");
+			//			} 
+			if (currentSegment.Contains( segmentNode )) { 
+				//				new List<int> {
+
+				var angle = GetAngle ( StartSegment, currentSegment ); //use reverse direction
+
+				if (direction != Math.Sign (angle) || angle == 0 ){//|| Math.Abs(angle) == 180  ) { 
+					if (debug) Debug.Log ("Skip: direction = " + direction.ToString () + "  angle = " + Math.Sign (angle));//+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() ));
+					continue;
+				} 
+				else {
+					if (debug) Debug.Log ("Angle matches");
+				}
+
+				var tmpSegmentNum = segments.IndexOf(currentSegment);
+
+				var angleAbs = Math.Abs (angle);
+
+				//				if (angleAbs == 180) {
+				//					angleAbs--;
+				//				}
+
+				// check for minimal angle that matches desired direction 
+				if ( angleAbs < storedSegment.Angle ) { 
+					storedSegment.Angle = angleAbs;
+					//					storedSegment.SegmentNum = tmpSegmentNum;
+					if (segmentNode == currentSegment.Last()) {
+						currentSegment.Reverse ();
+						tmpSegmentNum *= -1;
+					}
+					storedSegment.Segment = currentSegment;
+					NodeElement = currentSegment.Last ();
+					tmpSegment = new List<int> {tmpSegmentNum};
+					//					break;
+				}
+			}
+		}
+		if (debug) Debug.LogWarning ("Segments cycle finished. Checking  .Last() and stopElement: "+NodeElement.ToString()+" =? "+stopElement.ToString());
+		if ( NodeElement != stopElement ) { // for unpredictable cases NodeElement can be separated in additional condition with storedSegment.Segment.Clear and return
+			if (NodeElement == -1) {
+				tmpSegment = new List<int>(); return tmpSegment;
+			}
+			if (debug) Debug.Log ("From segment: "+String.Join( ",", StartSegment.Select( v => v.ToString() ).ToArray() ));
+			if (debug) Debug.Log ("To segment: "+String.Join( ",", storedSegment.Segment.Select( v => v.ToString() ).ToArray() ));
+			//			Debug.LogWarning ("Next recursive cycle");
+			//			var nextSegment = FindNextSegment (storedSegment.Segment, stopElement, direction);
+			//			if (nextSegment != new List<int>()) {
+			//			storedSegment.Segment.AddRange (FindNextSegment (storedSegment.Segment, stopElement, direction));
+			//			if (debug) {
+			//				Debug.Log ("Reverted storedSegment.Segment: "+String.Join( ",", storedSegment.Segment.Select( v => v.ToString() ).ToArray() ));
+			//			}
+			tmpSegment.AddRange (FindNextSegment (storedSegment.Segment, stopElement, direction));
+
+			//			}
+		}
+		return tmpSegment;//storedSegment.FoundSegment;
+	}
+
+
+
+	float GetAngle ( List<int> baseLineSegment, List<int> targetLineSegment ) {//Line line1, Line line2 ) {
+
+		int[] elementIndex;
+		//		try {
+		if ( targetLineSegment.First() == baseLineSegment.Last()) //determines a side which the target segment is connected from 
+			elementIndex 	= new int[] { 0, 1 };
+		else
+			elementIndex	= new int[] { targetLineSegment.Count -1, targetLineSegment.Count -2 }; 
+		//		}
+		//		catch {
+		//			Debug.LogWarning ("Error in FindDirection");
+		//		}
+
+		var targetLine 		= new Line { Start = points [ targetLineSegment[ elementIndex[0] ]], End = points [ targetLineSegment[ elementIndex[1] ]] };
+
+		int previousElement = baseLineSegment [ baseLineSegment.Count - 2 ];
+		var baseLine 		= new Line { End = points [ previousElement ], Start = points [ baseLineSegment.Last() ] };
+
+		var baseLineVect 	= new Vector2 (baseLine.End.x - baseLine.Start.x, baseLine.End.y - baseLine.Start.y);
+		var targetLineVect 	= new Vector2 (targetLine.End.x - targetLine.Start.x, targetLine.End.y - targetLine.Start.y);
+
+		float angle 		= Vector2.SignedAngle (baseLineVect, targetLineVect);
+
+		if (debug) Debug.Log ("From "+previousElement+"-"+baseLineSegment.Last()+"  To  "+targetLineSegment[ elementIndex[0] ]+"-"+targetLineSegment[ elementIndex[1] ]+"  Angle: "+angle.ToString ());
+
+		return angle;
+	}
+
+
+
+	bool CheckIntersections ( Line l1, Line l2 )
+	{
+		double v1=( l2.End.x - l2.Start.x ) * ( l1.Start.y - l2.Start.y ) - ( l2.End.y - l2.Start.y ) * ( l1.Start.x - l2.Start.x );
+		double v2=( l2.End.x - l2.Start.x ) * ( l1.End.y - l2.Start.y ) - ( l2.End.y - l2.Start.y ) * ( l1.End.x - l2.Start.x );
+		double v3=( l1.End.x - l1.Start.x ) * ( l2.Start.y - l1.Start.y ) - ( l1.End.y - l1.Start.y ) * ( l2.Start.x - l1.Start.x );
+		double v4=( l1.End.x - l1.Start.x ) * ( l2.End.y - l1.Start.y ) - ( l1.End.y - l1.Start.y )* ( l2.End.x - l1.Start.x );
+		return ((v1*v2<=0) && (v3*v4<=0));
+	}
+
+
+	int AddPoint( Vector2 point) {
+
+		minX = Mathf.Min (minX, point.x);
+		maxX = Mathf.Max (maxX, point.x);
+		minY = Mathf.Min (minY, point.y);
+		maxY = Mathf.Max (maxY, point.y);
+		points [pointsNumber] = point;//new dot2d { x=Point.x, y=Point.y };
+		return pointsNumber;
+	}
+
+
+	//	public bool GetIntersectionXY (out Vector2 intersection, Vector2 linePoint1, Vector2 lineVec1, Vector2 linePoint2, Vector2 lineVec2){
+	public static bool GetIntersectionXY(
+		out Vector2 intersection,	
+		Vector2 p1,
+		Vector2 p2,
+		Vector2 p3,
+		Vector3 p4
+	)
+	{
+		intersection = Vector2.zero;
+
+		var d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
+
+		if (d == 0.0f)
+		{
+			return false;
+		}
+
+		var u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d;
+		var v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d;
+
+		if (u < 0.0f || u > 1.0f || v < 0.0f || v > 1.0f)
+		{
+			return false;
+		}
+
+		intersection.x = p1.x + u * (p2.x - p1.x);
+		intersection.y = p1.y + u * (p2.y - p1.y);
+
+		return true;
+	}
+
+
+	Vector2 GetCatmullRomPosition(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+	{
+		//		Vector2 a = 2f * p1;
+		//		Vector2 b = p2 - p0;
+		//		Vector2 c = 2f * p0 - 5f * p1 + 4f * p2 - p3;
+		//		Vector2 d = -p0 + 3f * p1 - 3f * p2 + p3;
+		//
+		Vector2 pp2 = p2 + p2;
+		Vector2 a = p1 + p1;
+		Vector2 b = p2 - p0;
+		Vector2 c = p0 + p0 - a - a - p1 + pp2 + pp2 - p3;
+		Vector2 d = -p0 + a + p1 - p2 - p2 - p2 + p3;
+
+
+		float tt  = t * t;
+		float ttt = tt * t;
+
+		//The cubic polynomial: a + b * t + c * t^2 + d * t^3
+		Vector2 pos = 0.5f * (a + (b * t) + (c * tt) + (d * ttt));
+
+		//		Debug.Log("pos x/y: "+pos.x+" "+pos.y+"   pos:"+pos);
+
+		return pos;
+	}
+
+	// Update is called once per frame
+	void Update () {
+		
+	}
+}
