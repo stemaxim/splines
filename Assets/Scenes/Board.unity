@@ -494,7 +494,7 @@ MonoBehaviour:
   controlPointsList: []
   isLooping: 1
   lines: 
-  drawDelay: 0.1
+  drawDelay: 0.06
   touchesTxt: {fileID: 805600579}
 --- !u!4 &1543938998
 Transform:

@@ -337,7 +337,7 @@ public class GM : MonoBehaviour {
 		}
 		tmpLines.Remove (0);
 
-		segment = new List<int>(segments[0]);
+		segment = segments[0].ToList();
 
 		List<int> tmpListsConcat = tmpLines.Concat (segment).ToList();
 		segments[0] = tmpListsConcat;
@@ -436,24 +436,27 @@ public class GM : MonoBehaviour {
 
 			elements.Clear ();
 
-			foreach ( int segment in poly ){  
+			foreach ( int segmentNum in poly ){  
 
-				int index = 0;
-				if (segment < 0) {
-					index = segment * -1;
-					segments [index].Reverse ();
-				}
-				elements.AddRange (segments [index]);
+				if (segmentNum < 0) {
+					var index = segmentNum * -1;
+//					segments [index].
+					var tmpSegment = segments [index].ToList();
+					tmpSegment.Reverse ();
+					elements.AddRange (tmpSegment);
+				} else 
+					elements.AddRange (segments [segmentNum]);
 			}
 
 			var dots = elements.GroupBy (k => k).Select( v =>  points [ v.First() ] ).ToArray();
 
 			area = calculateArea (dots);
 
-//			if (area < 0) {
-//				dots.Reverse ();
-//			}
-			Debug.LogErrorFormat ("Adding poly: {0} {1} ", uniqId, area);
+			if (area < 0) {
+				dots.Reverse ();
+			}
+
+//			Debug.LogErrorFormat ("Adding poly: {0} {1} ", uniqId, area);
 
 			polies.Add ( new poliesInfo { hash = uniqId, segments = poly, size = area, points = dots, meshObj = false } );
 		}
@@ -591,7 +594,8 @@ public class GM : MonoBehaviour {
 					}
 					storedSegment.Segment = currentSegment;
 					NodeElement = currentSegment.Last ();
-					tmpSegment = new List<int> {tmpSegmentNum};
+					tmpSegment.Clear (); // = new List<int> {tmpSegmentNum}
+					tmpSegment.Add(tmpSegmentNum);
 				}
 			}
 		}
