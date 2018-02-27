@@ -40,8 +40,8 @@ public class GM : MonoBehaviour {
 //	[Serializable]
 
 
-	[SerializeField]
-	Vector2[] points = new Vector2[400];
+	[NonSerialized]
+	Vector2[] points = new Vector2[200];
 
 	[SerializeField]
 	int pointsNumber;
@@ -66,8 +66,12 @@ public class GM : MonoBehaviour {
 	[SerializeField]
 	List < poliesInfo > polies = new List < poliesInfo >();
 
-//	[SerializeField]
+	[NonSerialized]
 	public List< List<int> > segments = new List <List<int>>();
+
+//	struct Segments {
+//		public List< List<int> >;
+//	}
 
 	struct Line {
 		public Vector2 Start;
@@ -303,7 +307,9 @@ public class GM : MonoBehaviour {
 //		List<int> tmpListsConcat = new List<int> ();
 
 
-		var tmpLines = lines;
+		var tmpLines = new List<int> (lines);
+//		var tmpLines = lines;
+
 		int intStartIndex = tmpLines[tmpLines.Count() - 2];
 		if (debug)
 			Debug.LogError ("intStartIndex: " + intStartIndex);
@@ -331,7 +337,7 @@ public class GM : MonoBehaviour {
 		}
 		tmpLines.Remove (0);
 
-		segment = segments[0];
+		segment = new List<int>(segments[0]);
 
 		List<int> tmpListsConcat = tmpLines.Concat (segment).ToList();
 		segments[0] = tmpListsConcat;
@@ -354,7 +360,6 @@ public class GM : MonoBehaviour {
 			if (debug) Debug.LogWarning("---Combine polies start---");
 
 			var poly = FindNextSegment (currentSegment, currentSegment.Last (), 1);
-			Debug.Log ("CombinePolies: trying to output polies results");
 
 			if (poly.Count > 0) {
 				Debug.Log ("Constructed poly clockwise: " + String.Join (",", poly.Select (v => v.ToString ()).ToArray ()));
@@ -398,15 +403,15 @@ public class GM : MonoBehaviour {
 
 	void FilterPolies() {
 
-//		if (debug) {
-//			foreach (var tmpPoly in polies ) {
-//				Debug.Log ("Polies without duplicates: id = "+tmpPoly.hash.ToString()+" segments: "+ String.Join (",", tmpPoly.segments.Select(v => v.ToString()).ToArray())+";");
-////				createHullMesh (tmpPoly);
-//			}
-		if (debug) Debug.LogError("polies.Count: "+polies.Count);
-		if (polies.Count > 0)
-			createHullMesh (polies[0]);
-//		}
+////		if (debug) {
+			foreach (var tmpPoly in polies ) {
+				Debug.Log ("Polies without duplicates: id = "+tmpPoly.hash.ToString()+" segments: "+ String.Join (",", tmpPoly.segments.Select(v => v.ToString()).ToArray())+";");
+				createHullMesh (tmpPoly);
+			}
+//		if (debug) Debug.LogError("polies.Count: "+polies.Count);
+//		if (polies.Count > 0)
+//			createHullMesh (polies[0]);
+////		}
 	}
 
 
@@ -445,9 +450,9 @@ public class GM : MonoBehaviour {
 
 			area = calculateArea (dots);
 
-			if (area < 0) {
-				dots.Reverse ();
-			}
+//			if (area < 0) {
+//				dots.Reverse ();
+//			}
 			Debug.LogErrorFormat ("Adding poly: {0} {1} ", uniqId, area);
 
 			polies.Add ( new poliesInfo { hash = uniqId, segments = poly, size = area, points = dots, meshObj = false } );
@@ -544,23 +549,25 @@ public class GM : MonoBehaviour {
 	/// <param name="StartSegment">Start segment.</param>
 	/// <param name="stopElement">Stop element.</param>
 	/// <param name="direction">Direction.</param>
-	List<int> FindNextSegment (List <int> StartSegment, int stopElement, float direction) {
+	List<int> FindNextSegment (List <int> startSegment, int stopElement, float direction) {
 
 		segmentAngle storedSegment;
 		storedSegment  = new segmentAngle { Angle = 888f, SegmentNum = new List<int>(), Segment = new List<int>()};
 		var tmpSegment = new List<int>();
 		var tmpResult  = new List<int>();
 		int NodeElement = -1;
+		var segmentsCopy = new List< List<int> > (segments);
+
+		segmentsCopy.Remove (startSegment);
+
+		var segmentNode = startSegment.Last();
 
 
-		var segmentNode = StartSegment.Last();
-
-
-		foreach (var currentSegment in segments ) { 
+		foreach (var currentSegment in segmentsCopy ) { 
 			if (currentSegment.Contains( segmentNode )) { 
-				var angle = GetAngle ( StartSegment, currentSegment );
+				var angle = GetAngle ( startSegment, currentSegment );
 
-				if ( (direction != Math.Sign (angle)) || (angle == 0) ){//|| Math.Abs(angle) == 180  ) { 
+				if ( (direction != Math.Sign (angle))) {//|| (angle == 0) ){//|| Math.Abs(angle) == 180  ) { 
 					if (debug) Debug.Log ("Skip: direction = " + direction.ToString () + "  angle = " + Math.Sign (angle));//+String.Join( ",", sideSegment.Select( v => v.ToString() ).ToArray() ));
 					continue;
 				} 
@@ -568,7 +575,7 @@ public class GM : MonoBehaviour {
 					if (debug) Debug.Log ("Angle matches");
 				}
 
-				var tmpSegmentNum = segments.IndexOf(currentSegment);
+				var tmpSegmentNum = segmentsCopy.IndexOf(currentSegment);
 
 				var angleAbs = Math.Abs (angle);
 
@@ -595,7 +602,7 @@ public class GM : MonoBehaviour {
 				return new List<int>();
 			}
 
-			if (debug) Debug.Log ("From segment: "+String.Join( ",", StartSegment.Select( v => v.ToString() ).ToArray() ));
+			if (debug) Debug.Log ("From segment: "+String.Join( ",", startSegment.Select( v => v.ToString() ).ToArray() ));
 			if (debug) Debug.Log ("To segment: "+String.Join( ",", storedSegment.Segment.Select( v => v.ToString() ).ToArray() ));
 
 			tmpResult = FindNextSegment (storedSegment.Segment, stopElement, direction);
