@@ -25,12 +25,14 @@ public class TileTouch : MonoBehaviour {
 
 	private RaycastHit2D[] hitBlocks;
 
-	private int debugNum;
+	[SerializeField]
+	public int[] scanned;
 
 
 	void Start () {
 //		tileState = State.floor;
 		tileSize = Board.instance.tileSize;
+		int[] Scanned = {0,0,0,0};
 	}
 
 	void Awake () {
@@ -75,22 +77,27 @@ public class TileTouch : MonoBehaviour {
 			return;
 
 
-		foreach (Vector2 directionVect in new Vector2[4] {Vector2.left, Vector2.right, Vector2.up, Vector2.down}) {
+		foreach (Vector2 directionVect in new Vector2[4] {Vector2.left, Vector2.up, Vector2.down, Vector2.right}) {
 
 			hitBlocks = Physics2D.LinecastAll (transform.position, (Vector2)transform.position + directionVect * tileSize);
 
-			Debug.DrawLine ( transform.position, (Vector2)transform.position + Vector2.left*20, Color.green ); 
-			Debug.Log("Hit object: " + System.String.Join (",", hitBlocks.Select(v => v.collider.gameObject.name).ToArray())+" "+currState+" by Vector: "+directionVect);// hitBlocks.collider.gameObject.name);
+//			Debug.DrawLine ( transform.position, (Vector2)transform.position + Vector2.left*20, Color.green ); 
+//			Debug.Log("Hit object: " + System.String.Join (",", hitBlocks.Select(v => v.collider.gameObject.name).ToArray())+" "+currState+" by Vector: "+directionVect);// hitBlocks.collider.gameObject.name);
 
 //			var dPrefab = Instantiate(debugPrefab, transform.position, Quaternion.identity, transform);
 //			dPrefab.name = "State: " + currState + " "+Board.instance.area++;
 
+			if (directionVect == Vector2.left ) 	scanned[0]=1;
+			if (directionVect == Vector2.up ) 	scanned[1]=1;
+			if (directionVect == Vector2.down ) 		scanned[2]=1;
+			if (directionVect == Vector2.right ) 	scanned[3]=1;
+
 			if (hitBlocks.Length > 1) {
 				if (currState != State.disabled) {
 					hitBlocks [1].collider.gameObject.GetComponent<TileTouch> ().paintTile (State.disabled);
-//					return;
+					continue;
 				}
-			} else if (hitBlocks.Length > 0 && hitBlocks [0].collider.gameObject.GetComponent<TileTouch> ().tileState != State.wall )
+			} else if (hitBlocks.Length > 0 && hitBlocks[0].collider.tag != "Wall" )// hitBlocks [0].collider.gameObject.GetComponent<TileTouch> ().tileState != State.wall )
 				hitBlocks [0].collider.gameObject.GetComponent<TileTouch> ().paintTile (currState);
 		}
 	}

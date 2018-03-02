@@ -98,6 +98,7 @@ MonoBehaviour:
   tileSize: 20
   debugPrefab: {fileID: 1547612445161944, guid: 1dcd5b5635053463091b4a859de4fd35,
     type: 2}
+  scanned: 00000000000000000000000000000000
 --- !u!222 &222480561180632846
 CanvasRenderer:
   m_ObjectHideFlags: 1
