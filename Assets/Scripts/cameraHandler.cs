@@ -73,25 +73,31 @@ public class cameraHandler : MonoBehaviour {
 	}
 
 	Vector3 CheckMove(Vector3 delta){
+
+		int GMInstancemaxX = 620;
+		int GMInstanceminX = 0;
+		int GMInstancemaxY = 1000;
+		int GMInstanceminY = 0;
+
 		if (delta.x > 0) {
-			if (cam.WorldToScreenPoint (Vector3.right * GM.Instance.maxX - delta).x < Screen.width - rightBorder) {
+			if (cam.WorldToScreenPoint (Vector3.right * GMInstancemaxX - delta).x < Screen.width - rightBorder) {
 				delta.x = 0;
 				//delta.z = 0;
 			}
 		} else {
-			if (cam.WorldToScreenPoint (Vector3.right * GM.Instance.minX - delta).x > leftBorder) {
+			if (cam.WorldToScreenPoint (Vector3.right * GMInstanceminX - delta).x > leftBorder) {
 				delta.x = 0;
 				//delta.z = 0;
 			}
 		}
 
 		if (delta.y > 0) {
-			if (cam.WorldToScreenPoint (Vector3.up * GM.Instance.maxY - delta).y < Screen.height - topBorder) {
+			if (cam.WorldToScreenPoint (Vector3.up * GMInstancemaxY - delta).y < Screen.height - topBorder) {
 				delta.y = 0;
 				//delta.z = 0;
 			}
 		} else {
-			if (cam.WorldToScreenPoint (Vector3.up * GM.Instance.minY - delta).y > bottomBorder) {
+			if (cam.WorldToScreenPoint (Vector3.up * GMInstanceminY - delta).y > bottomBorder) {
 				delta.y = 0;
 				//delta.z = 0;
 			}

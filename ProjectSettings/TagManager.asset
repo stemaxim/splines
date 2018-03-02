@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Wall
+  - Floor
+  - Painted
+  - Disabled
   layers:
   - Default
   - TransparentFX
@@ -13,6 +17,7 @@ TagManager:
   - UI
   - 
   - 
+  - Back
   - 
   - 
   - 
@@ -35,8 +40,7 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
+  - Front
   m_SortingLayers:
   - name: Default
     uniqueID: 0

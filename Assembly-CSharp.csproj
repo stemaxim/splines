@@ -51,9 +51,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\Board.cs" />
      <Compile Include="Assets\Scripts\cameraHandler.cs" />
      <Compile Include="Assets\Scripts\GM.cs" />
      <Compile Include="Assets\Scripts\onTap.cs" />
+     <Compile Include="Assets\Scripts\TileTouch.cs" />
      <Compile Include="Assets\Scripts\touchTxt.cs" />
      <Compile Include="Assets\Scripts\Triangulator.cs" />
  <Reference Include="UnityEngine.UIAutomation">

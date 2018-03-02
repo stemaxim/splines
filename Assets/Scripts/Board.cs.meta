@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4fb1ed0ea0c034f10921e5c44af5d5ac
+timeCreated: 1519828252
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - bgTile: {fileID: 21300000, guid: 0044c427c981d46d9baef08c08ab66f2, type: 3}
+  - filledTile: {fileID: 21300000, guid: f19088848df6e4fa7855fabaec407ce8, type: 3}
+  - inactiveTile: {fileID: 21300000, guid: 66eb4613890f54c0b91452bf6c6e7eef, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
