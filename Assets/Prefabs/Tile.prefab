@@ -42,7 +42,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.0012969971, y: -0.04135132}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -98,7 +98,7 @@ MonoBehaviour:
   tileSize: 20
   debugPrefab: {fileID: 1547612445161944, guid: 1dcd5b5635053463091b4a859de4fd35,
     type: 2}
-  scanned: 00000000000000000000000000000000
+  scanned: 
 --- !u!222 &222480561180632846
 CanvasRenderer:
   m_ObjectHideFlags: 1
