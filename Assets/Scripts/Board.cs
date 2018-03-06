@@ -102,7 +102,7 @@ public class Board : MonoBehaviour {
 
 		var rotationHelper = Quaternion.Euler(new Vector3( 0, 0, 0));
 
-		nextStepPos = new Vector3 { x = startX + (mapWidth/2*tileSize),
+		nextStepPos = new Vector3 { x = startX + (mapWidth/2*tileSize-2*tileSize),
 									y = startY + (mapHeight/2*tileSize),
 			z = 0 };
 
@@ -145,7 +145,7 @@ public class Board : MonoBehaviour {
 
 	bool isBorder (Vector2 pos) {
 
-		if (pos.x >= startX + mapWidth*tileSize-tileSize+5 || pos.x <= startX + tileSize+5 || pos.y >= startY + mapHeight*tileSize-tileSize-5 || pos.y <= startY + tileSize+5 )
+		if (pos.x >= startX + mapWidth*tileSize-tileSize || pos.x <= startX || pos.y >= startY + mapHeight*tileSize-tileSize || pos.y <= startY )
 			return true;
 		else
 			return false;
