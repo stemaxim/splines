@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Linq;
+using System;
 
 public class TileTouch : MonoBehaviour {
 
@@ -25,14 +26,14 @@ public class TileTouch : MonoBehaviour {
 
 	private RaycastHit2D[] hitBlocks;
 
-	[SerializeField]
-	public int[] scanned;
+//	[SerializeField]
+//	public int[] scanned;
 
 
 	void Start () {
 //		tileState = State.floor;
 		tileSize = Board.instance.tileSize;
-		int[] Scanned = {0,0,0,0};
+//		int[] Scanned = {0,0,0,0};
 	}
 
 	void Awake () {
@@ -52,7 +53,7 @@ public class TileTouch : MonoBehaviour {
 //		}
 
 //		hitBlocks = Physics2D.LinecastAll (transform.position, (Vector2)transform.position + Vector2.left * tileSize);
-		Debug.DrawLine ( transform.position, (Vector2)transform.position + Vector2.left*20, Color.green ); 
+//		Debug.DrawLine ( transform.position, (Vector2)transform.position + Vector2.left*20, Color.green ); 
 //		Debug.Log("Hit object: " + System.String.Join (",", hitBlocks.Select(v => v.collider.gameObject.name).ToArray())+";");// hitBlocks.collider.gameObject.name);
 		paintTile (State.painted);
 	}
@@ -68,7 +69,7 @@ public class TileTouch : MonoBehaviour {
 		
 		} else if (currState == State.painted) {
 
-			image.color = Color.blue;
+			image.color = new Color32 (Convert.ToByte (0x45), Convert.ToByte (0xB0), Convert.ToByte (0xFF), 255); // 2570FFFF
 			tileState = State.painted;
 			GetComponent<BoxCollider2D>().enabled = false;
 			Board.instance.area++;
