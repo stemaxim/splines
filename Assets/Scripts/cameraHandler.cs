@@ -74,10 +74,10 @@ public class cameraHandler : MonoBehaviour {
 
 	Vector3 CheckMove(Vector3 delta){
 
-		int GMInstancemaxX = 620;
-		int GMInstanceminX = 0;
-		int GMInstancemaxY = 1000;
-		int GMInstanceminY = 0;
+		int GMInstancemaxX = 310;
+		int GMInstanceminX = -310;
+		int GMInstancemaxY = 500;
+		int GMInstanceminY = -500;
 
 		if (delta.x > 0) {
 			if (cam.WorldToScreenPoint (Vector3.right * GMInstancemaxX - delta).x < Screen.width - rightBorder) {

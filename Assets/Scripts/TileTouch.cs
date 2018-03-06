@@ -63,7 +63,7 @@ public class TileTouch : MonoBehaviour {
 		
 		if (currState == State.disabled) {
 
-			image.color = Color.grey;	
+//			image.color = Color.grey;	
 			tileState = State.disabled;
 			GetComponent<BoxCollider2D>().enabled = false;
 		

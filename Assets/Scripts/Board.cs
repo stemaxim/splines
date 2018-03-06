@@ -44,11 +44,10 @@ public class Board : MonoBehaviour {
 
 	//	public Sprite[,] tiles = new Sprite[tile_width,tile_height];
 
+	public float drawDelay = 0.02f;
+
 	[SerializeField]
 	GameObject bgTile, line;
-
-
-	//	private int tilesNumX = 
 
 
 	void Awake(){
@@ -59,14 +58,14 @@ public class Board : MonoBehaviour {
 
 	void Start () {
 
-		Debug.Log (name + transform.localPosition.ToString () + transform.position.ToString ());
+//		Debug.Log (name + transform.localPosition.ToString () + transform.position.ToString ());
 
 		startX = (int)transform.position.x;     
 		startY = (int)transform.position.y;
 
 		//		Vector2 offset = new Vector2 (tileSize, tileSize);//bgTile.GetComponent<SpriteRenderer> ().bounds.size;
 		CreateBoard (tileSize, tileSize);//(offset.x, offset.y); 
-		DrawLine(totalSteps);
+		StartCoroutine(DrawLine(totalSteps));
 	}
 
 	void Update() {
@@ -84,14 +83,14 @@ public class Board : MonoBehaviour {
 		for (int x = 0; x < mapWidth; x++) {      
 			for (int y = 0; y < mapHeight; y++) {
 				GameObject newTile = Instantiate ( bgTile, transform );
-				newTile.transform.position = new Vector3 ( startX + (xOffset * x), startY + (yOffset * y), 20);
+				newTile.transform.position = new Vector3 ( startX + (xOffset * x), startY + (yOffset * y), 1);
 				//				tiles [x, y] = newTile;
 			}
 		}
 	}
 
-	void DrawLine (int movesNum) {
-
+	IEnumerator DrawLine (int movesNum) {
+		yield return null;
 		Vector3 nextStepPos;
 
 		int steps = Random.Range (randomMin, randomMax);
@@ -110,19 +109,22 @@ public class Board : MonoBehaviour {
 		//		lineObjHandler.transform.position = nextStepPos;
 
 		for ( ; movesNum > 0; movesNum-- ) {
-
-
+//			yield return null;
 
 
 			if (isBorder (nextStepPos)||(steps == 0)) { 
 				direction++;
 				steps = Random.Range (randomMin, randomMax);
 
+
 				GameObject lineCorner = Instantiate ( line, nextStepPos, rotationHelper, transform );
 				lineCorner.transform.position = nextStepPos;
 				lineCorner.transform.rotation = rotationHelper;
 
 				rotationHelper *= Quaternion.Euler(new Vector3( 0,0, -90));
+
+				yield return new WaitForSeconds(0.01f);
+
 				//				rotationHelper.eulerAngles *= Vector3( 0,0, -90);//Quaternion.Euler(new Vector3( 0,0, -90));
 			} ;
 
@@ -136,6 +138,7 @@ public class Board : MonoBehaviour {
 			nextStepPos += ( Directions[direction % 4] * tileSize );
 
 			steps--;
+//			System.Threading.Thread.Sleep(10);
 
 			//			Debug.Log (rotationHelper.eulerAngles);
 

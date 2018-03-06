@@ -2,18 +2,28 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Board.cs">
     <Files>
-      <File FileName="Assets/Scripts/Board.cs" Line="26" Column="38" />
-      <File FileName="Assets/Scripts/GM.cs" Line="16" Column="3" />
+      <File FileName="Assets/Scripts/Levels.cs" Line="19" Column="16" />
+      <File FileName="Assets/Scripts/Board.cs" Line="136" Column="12" />
+      <File FileName="Assets/Scripts/TileTouch.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/GM.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/touchTxt.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/onTap.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/TileTouch.cs" Line="73" Column="29" />
+      <File FileName="Assets/Scripts/cameraHandler.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/BackBtnScript.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/PlayBtnScript.cs" Line="1" Column="1" />
+      <File FileName="../InkWars/Assets/_Scripts/_GamePlay/Polotno.cs" Line="52" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="/Users/Shared/Unity/Ink_Wars/Assets/Scripts/BackBtnScript.cs" line="10" column="11" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches>
-    <Watch file="Assets/Scripts/TileTouch.cs" line="63" offsetX="307" offsetY="930" expression="Board.instance.area" liveUpdate="False" />
-    <Watch file="Assets/Scripts/TileTouch.cs" line="73" offsetX="940" offsetY="917" expression="hitBlocks.Length" liveUpdate="False" />
+    <Watch file="Assets/Scripts/TileTouch.cs" line="55" offsetX="411" offsetY="795" expression="currState" liveUpdate="False" />
+    <Watch file="Assets/Scripts/TileTouch.cs" line="81" offsetX="977" offsetY="1278" expression="hitBlocks.Length" liveUpdate="False" />
+    <Watch file="Assets/Scripts/TileTouch.cs" line="78" offsetX="900" offsetY="1211" expression="directionVect" liveUpdate="False" />
+    <Watch file="Assets/Scripts/TileTouch.cs" line="88" offsetX="810" offsetY="1301" expression="currState" liveUpdate="False" />
+    <Watch file="Assets/Scripts/TileTouch.cs" line="85" offsetX="980" offsetY="1244" expression="transform.position" liveUpdate="False" />
   </MonoDevelop.Ide.DebuggingService.PinnedWatches>
 </Properties>

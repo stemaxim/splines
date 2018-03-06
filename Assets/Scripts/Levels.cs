@@ -16,11 +16,12 @@ public class Levels : MonoBehaviour {
 	}
 
 	public void QuitBtnClick() {
+//		Debug.LogWarning ("Quit Pressed@");
 		Application.Quit();
 	}
 
 	public void OnMouseDown () {
-		Debug.LogWarning ("Button Pressed@");
+//		Debug.LogWarning ("Button Pressed@");
 		SceneManager.LoadScene (2);
 	}
 }

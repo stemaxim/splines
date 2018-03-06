@@ -53,7 +53,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 17.085175, y: 16.926819}
+  m_Size: {x: 19, y: 19}
   m_EdgeRadius: 0
 --- !u!114 &114051467247001536
 MonoBehaviour:
@@ -98,7 +98,6 @@ MonoBehaviour:
   tileSize: 20
   debugPrefab: {fileID: 1547612445161944, guid: 1dcd5b5635053463091b4a859de4fd35,
     type: 2}
-  scanned: 
 --- !u!222 &222480561180632846
 CanvasRenderer:
   m_ObjectHideFlags: 1
