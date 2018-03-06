@@ -51,11 +51,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Levels.cs" />
      <Compile Include="Assets\Scripts\BackBtnScript.cs" />
      <Compile Include="Assets\Scripts\Board.cs" />
      <Compile Include="Assets\Scripts\cameraHandler.cs" />
      <Compile Include="Assets\Scripts\GM.cs" />
+     <Compile Include="Assets\Scripts\Levels.cs" />
      <Compile Include="Assets\Scripts\onTap.cs" />
      <Compile Include="Assets\Scripts\PlayBtnScript.cs" />
      <Compile Include="Assets\Scripts\TileTouch.cs" />
