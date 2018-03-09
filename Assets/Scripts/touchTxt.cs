@@ -13,11 +13,6 @@ using UnityEngine.UI;
 
 	// Update is called once per frame
 	void Update () {
-//		if (Input.touchCount > 0) {
-//			txt.text = Input.touches [0].position.ToString ();
-//		} else {
-//			txt.text = "0 touches";
-//		}
 	}
 }
 

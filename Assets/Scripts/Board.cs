@@ -49,6 +49,11 @@ public class Board : MonoBehaviour {
 	[SerializeField]
 	GameObject bgTile, line;
 
+	public bool isDelayOn = true;
+
+	/// <summary> variables end
+	/// ////////////////// ////////////////// ////////////////// ////////////////// ////////////////// ///////////////
+	/// </summary>
 
 	void Awake(){
 		_instance = this;
@@ -58,7 +63,6 @@ public class Board : MonoBehaviour {
 
 	void Start () {
 
-//		Debug.Log (name + transform.localPosition.ToString () + transform.position.ToString ());
 
 		startX = (int)transform.position.x;     
 		startY = (int)transform.position.y;
@@ -68,9 +72,6 @@ public class Board : MonoBehaviour {
 		StartCoroutine(DrawLine(totalSteps));
 	}
 
-	void Update() {
-
-	}
 
 	private void CreateBoard (float xOffset, float yOffset) {
 
@@ -109,7 +110,6 @@ public class Board : MonoBehaviour {
 		//		lineObjHandler.transform.position = nextStepPos;
 
 		for ( ; movesNum > 0; movesNum-- ) {
-//			yield return null;
 
 
 			if (isBorder (nextStepPos)||(steps == 0)) { 
@@ -123,7 +123,6 @@ public class Board : MonoBehaviour {
 
 				rotationHelper *= Quaternion.Euler(new Vector3( 0,0, -90));
 
-				yield return new WaitForSeconds(0.01f);
 
 				//				rotationHelper.eulerAngles *= Vector3( 0,0, -90);//Quaternion.Euler(new Vector3( 0,0, -90));
 			} ;
@@ -138,7 +137,8 @@ public class Board : MonoBehaviour {
 			nextStepPos += ( Directions[direction % 4] * tileSize );
 
 			steps--;
-//			System.Threading.Thread.Sleep(10);
+
+			if (isDelayOn) yield return new WaitForSeconds(0.01f);
 
 			//			Debug.Log (rotationHelper.eulerAngles);
 

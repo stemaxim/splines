@@ -6,22 +6,11 @@ using UnityEngine.EventSystems;
 
 public class Levels : MonoBehaviour {
 
-
-	void Start() {
-		
-	}
-
-	void Update() {
-		
-	}
-
 	public void QuitBtnClick() {
-//		Debug.LogWarning ("Quit Pressed@");
 		Application.Quit();
 	}
 
 	public void OnMouseDown () {
-//		Debug.LogWarning ("Button Pressed@");
 		SceneManager.LoadScene (2);
 	}
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using System.Linq;
-//using System;
 using System;
 using UnityEngine.UI;
 
@@ -21,7 +20,6 @@ public class GM : MonoBehaviour {
 
 	LineRenderer lineRenderer;
 	//public LineRenderer lineDebug;
-//	public GameObject lineDebugPrefab;
 	public GameObject emptyPrefab;
 	public GameObject hullPrefab = null;
 
@@ -30,14 +28,11 @@ public class GM : MonoBehaviour {
 	[Range(0f,30f)]
 	public int countControlPoints = 12;
 
-//	public List<Transform> controlPointsList = new List<Transform>();
 
 	[SerializeField]
 	public float resolution = 0.25f;
 
 
-//	[StructLayout(LayoutKind.Sequential, Pack=1)]
-//	[Serializable]
 
 
 	[NonSerialized]
@@ -47,7 +42,6 @@ public class GM : MonoBehaviour {
 	int pointsNumber;
 
 	public float minX, maxX, minY, maxY;
-//	public Transform[] controlPointsList;
 	public List < Transform > controlPointsList = new List < Transform >();
 	public bool isLooping = true;
 
@@ -69,9 +63,6 @@ public class GM : MonoBehaviour {
 	[NonSerialized]
 	public List< List<int> > segments = new List <List<int>>();
 
-//	struct Segments {
-//		public List< List<int> >;
-//	}
 
 	struct Line {
 		public Vector2 Start;
@@ -107,9 +98,7 @@ public class GM : MonoBehaviour {
 
 	void GenerateControlPoints(int count = 20){
 
-//		controlPointsList.Clear ();
 		pointsNumber = 0;
-//		lines.Clear ();
 
 		Vector2 v = Vector2.zero;
 		for (int i = 0; i < count; i++) {
@@ -158,43 +147,6 @@ public class GM : MonoBehaviour {
 			Debug.LogError ("finished");
 	}
 
-//	void OnDrawGizmos()
-//	{	
-//		Gizmos.color = Color.cyan;
-//		pointsNumber = 0;
-//		lines.Clear ();
-//
-//
-//		Color[] colors = { Color.red, Color.green, Color.blue  };
-//
-//		for (int i = 0; i < controlPointsList.Length; i++)
-//		{
-//			if ((i == 0 || i == controlPointsList.Length - 2 || i == controlPointsList.Length - 1) && !isLooping)
-//			{
-//				continue;
-//			}
-//
-//			DisplayCatmullRomSpline(i);
-//		}
-//		lines.Add (0);
-//		AddIntersections();
-//
-//
-//
-//		int colorSwitch = 0; 
-//
-//		for (int linesIterator = 1; linesIterator < lines.Count; linesIterator++) {
-//			colorSwitch = linesIterator % 3;
-//
-//			Gizmos.color = colors[ colorSwitch ];
-////			Handles.Label (new Vector3 (points [lines [linesIterator]].x, points [lines [linesIterator]].y+(-(linesIterator % 2)/5f), 0), lines [linesIterator].ToString());
-//
-//			Gizmos.DrawLine ( points[ lines [linesIterator-1] ], points[ lines [linesIterator] ]);
-//		}
-//
-//		FillSegments();
-//		CombinePolies();
-//	}
 
 
 
@@ -218,10 +170,6 @@ public class GM : MonoBehaviour {
 	}
 
 
-//	int ClampListPos(int pos){
-//		pos = (pos + controlPointsList.Count) % controlPointsList.Count;
-//		return pos;
-//	}
 
 
 	void DisplayCatmullRomSpline(int pos)
@@ -272,7 +220,6 @@ public class GM : MonoBehaviour {
 					if (!((currentLineIndex == (lines.Count() - 1)) && (linesIterator == 1))) {
 						GetIntersectionXY (out intersectionXY, lineToCheck.Start, lineToCheck.End, currentLine.Start, currentLine.End);
 
-//						Handles.SphereHandleCap (2, intersectionXY, Quaternion.identity, 0.7f, EventType.Repaint);
 
 						var lineStartIndex = lines [ linesIterator - 1 ];
 						var lineEndIndex   = lines [ linesIterator 	   ];
@@ -299,16 +246,11 @@ public class GM : MonoBehaviour {
 	void FillSegments() {
 
 
-//		var _lines = lines;
-//		if (debug)
-//			Debug.LogError ("FillSegments start\n"+" last lines element: "+_lines.Last().ToString());
 			
 		List<int> segment = new List<int> ();
-//		List<int> tmpListsConcat = new List<int> ();
 
 
 		var tmpLines = new List<int> (lines);
-//		var tmpLines = lines;
 
 		int intStartIndex = tmpLines[tmpLines.Count() - 2];
 		if (debug)
@@ -317,23 +259,13 @@ public class GM : MonoBehaviour {
 		int intersectionPos = -1;
 		while ( (intersectionPos = tmpLines.FindIndex (1, e => ( e > intStartIndex ))) > -1 ) {
 
-//			try {
 			segment = tmpLines.GetRange( 0, Math.Min (intersectionPos+1, tmpLines.Count()-1)).ToList();
-//			}
-//			catch {
-//				Debug.LogWarning("Error: GetRange( 0, Math.Min ("+intersectionPos+1+", "+(tmpLines.Count-1)+")");
-//			}
 
 			segments.Add( segment ); 
 			if (debug)
 				Debug.Log (" segments: "+ String.Join (",", segment.Select(v => v.ToString()).ToArray())+";");
 
-//			try {
 				tmpLines.RemoveRange (0, intersectionPos); 
-//			}
-//			catch {
-//				Debug.LogWarning ("Error in RemoveRange: Trying to remove elements from 0 to "+intersectionPos.ToString()); 
-//			}
 		}
 		tmpLines.Remove (0);
 
@@ -344,12 +276,8 @@ public class GM : MonoBehaviour {
 	}	
 
 
-/// <summary>
-/// ///////
-/// </summary>
 	void CombinePolies () {
 
-//		polies.Clear ();
 
 		if (debug) {
 			Debug.Log ("Combine start");
@@ -378,7 +306,6 @@ public class GM : MonoBehaviour {
 		if (tmpSegment.Count == 0)
 			return;
 
-//		Debug.Log ("Segments[0]: " + String.Join (",", segments[0].Select (v => v.ToString ()).ToArray ()));
 
 		var poly = FindNextSegment (tmpSegment, tmpSegment.Last (), -1);
 		Debug.Log ("CombinePolies: trying to output polies results");
@@ -388,7 +315,6 @@ public class GM : MonoBehaviour {
 			AddPoly (-1, poly);
 		}
 
-//		Debug.Log ("Segments[0]: " + String.Join (",", segments[0].Select (v => v.ToString ()).ToArray ()));
 		poly = FindNextSegment (tmpSegment, tmpSegment.Last (), 1);
 		Debug.Log ("CombinePolies: trying to output polies results");
 
@@ -403,15 +329,10 @@ public class GM : MonoBehaviour {
 
 	void FilterPolies() {
 
-////		if (debug) {
 			foreach (var tmpPoly in polies ) {
 				Debug.Log ("Polies without duplicates: id = "+tmpPoly.hash.ToString()+" segments: "+ String.Join (",", tmpPoly.segments.Select(v => v.ToString()).ToArray())+";");
 				createHullMesh (tmpPoly);
 			}
-//		if (debug) Debug.LogError("polies.Count: "+polies.Count);
-//		if (polies.Count > 0)
-//			createHullMesh (polies[0]);
-////		}
 	}
 
 
@@ -440,7 +361,6 @@ public class GM : MonoBehaviour {
 
 				if (segmentNum < 0) {
 					var index = segmentNum * -1;
-//					segments [index].
 					var tmpSegment = segments [index].ToList();
 					tmpSegment.Reverse ();
 					elements.AddRange (tmpSegment);
@@ -456,7 +376,6 @@ public class GM : MonoBehaviour {
 				dots.Reverse ();
 			}
 
-//			Debug.LogErrorFormat ("Adding poly: {0} {1} ", uniqId, area);
 
 			polies.Add ( new poliesInfo { hash = uniqId, segments = poly, size = area, points = dots, meshObj = false } );
 		}
@@ -505,25 +424,21 @@ public class GM : MonoBehaviour {
 		var vertices = new Vector3[ dotsNumber ];
 
 		vertices = poly.points.Select (v => ( new Vector3 (v.x, v.y, 0)) ).ToArray();
-//		var normals = Enumerable.Repeat( Vector3.forward, dotsNumber).ToArray (); 
 
 		var colors = Enumerable.Repeat (Color.red, dotsNumber).ToArray ();
 
 		if ( poly.meshObj ) {
 			newHull = GameObject.Find("hull["+poly.hash+"]");
 		} else {
-//			Debug.LogError ("Can't get name of stored poly mesh");
 			newHull = (GameObject)Instantiate (hullPrefab, gameObject.transform) as GameObject;
 			newHull.name = ("hull["+poly.hash+"]");
 		}
 
-//		Debug.LogError ("Creating hull: hull["+poly.hash+"]");
 
 
 		GameObject go = Instantiate (emptyPrefab, poly.points[0], Quaternion.identity) as GameObject;
 		go.name = newHull.name;
 
-//		Debug.LogError ("Created hull: "+newHull.name);
 
 		mRenderer = newHull.GetComponent (typeof(MeshRenderer)) as MeshRenderer;
 		mFilter = newHull.GetComponent (typeof(MeshFilter)) as MeshFilter;
@@ -539,7 +454,6 @@ public class GM : MonoBehaviour {
 
 		mCollider.sharedMesh = null;
 		mCollider.sharedMesh = mesh;
-//		newHull.AddComponent<MeshCollider> ().sharedMesh = mesh;
 
 		poly.meshObj = true;
 	}
@@ -602,7 +516,6 @@ public class GM : MonoBehaviour {
 		if (debug) Debug.LogWarning ("Segments cycle finished. Checking  .Last() and stopElement: "+NodeElement.ToString()+" =? "+stopElement.ToString());
 		if ( NodeElement != stopElement ) {	
 			if (NodeElement == -1) {
-//				tmpSegment = new List<int>(); return tmpSegment;
 				return new List<int>();
 			}
 
