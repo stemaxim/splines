@@ -39,7 +39,6 @@ public class TileTouch : MonoBehaviour {
 
 	void OnMouseDown () {
 
-
 		paintTile (State.painted);
 	}
 
