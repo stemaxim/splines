@@ -15,7 +15,7 @@ public class TileTouch : MonoBehaviour {
 	}
 
 	public Image image;
-	public enum State { painted, disabled, floor, wall};
+	public enum State { painted, disabled, floor, wall };
 
 	public State tileState;
 
@@ -52,7 +52,7 @@ public class TileTouch : MonoBehaviour {
 		
 		} else if (currState == State.painted) {
 
-			image.color = new Color32 (Convert.ToByte (0x45), Convert.ToByte (0xB0), Convert.ToByte (0xFF), 255); // 2570FFFF
+			image.color = new Color32 (Convert.ToByte (0x45), Convert.ToByte (0xB0), Convert.ToByte (0xFF), 255); 
 			tileState = State.painted;
 			GetComponent<BoxCollider2D>().enabled = false;
 			Board.instance.area++;
@@ -70,11 +70,11 @@ public class TileTouch : MonoBehaviour {
 
 			if (hitBlocks.Length > 1) {
 				if (currState != State.disabled && hitBlocks.Last().collider.tag != "Wall") {
-					hitBlocks.Last().collider.gameObject.GetComponent<TileTouch> ().paintTile (State.disabled);
+					hitBlocks.Last().collider.gameObject.GetComponent<TileTouch>().paintTile (State.disabled);
 					continue;
 				}
 			} else if (hitBlocks.Length > 0 && hitBlocks.First().collider.tag != "Wall" )// hitBlocks [0].collider.gameObject.GetComponent<TileTouch> ().tileState != State.wall )
-				hitBlocks.First().collider.gameObject.GetComponent<TileTouch> ().paintTile (currState);
+				hitBlocks.First().collider.gameObject.GetComponent<TileTouch>().paintTile (currState);
 		}
 	}
 }

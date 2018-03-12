@@ -7,7 +7,7 @@ public class RemoveDelay : MonoBehaviour{//, IPointerClickHandler {
 
 	void OnMouseDown () {
 		Board.instance.isDelayOn = false;
-		Destroy (gameObject,1);
+//		Destroy (gameObject,1);
 //		gameObject.SetActive(false);
 	}
 
