@@ -1,23 +1,44 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Board.cs">
     <Files>
-      <File FileName="Assets/Scripts/Board.cs" Line="154" Column="1" />
+      <File FileName="Assets/Scripts/Board.cs" Line="206" Column="42" />
       <File FileName="Assets/Scripts/Levels.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/TileTouch.cs" Line="55" Column="106" />
+      <File FileName="Assets/Scripts/TileTouch.cs" Line="77" Column="1" />
       <File FileName="Assets/Scripts/GM.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/touchTxt.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/onTap.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/cameraHandler.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/BackBtnScript.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/BackBtnScript.cs" Line="10" Column="1" />
       <File FileName="Assets/Scripts/PlayBtnScript.cs" Line="1" Column="1" />
       <File FileName="../InkWars/Assets/_Scripts/_GamePlay/Polotno.cs" Line="1" Column="1" />
+      <File FileName="Assets/RemoveDelay.cs" Line="1" Column="1" />
     </Files>
+    <Pads>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State>
+          <Value>movesNum</Value>
+          <Value>steps</Value>
+          <Value>pos.x &gt;= startX + mapWidth * tileSize + tileSize * 3</Value>
+          <Value>pos.x &lt;= startX + tileSize * 3</Value>
+          <Value>pos.y &gt;= startY + mapHeight * tileSize + tileSize * 3</Value>
+          <Value>pos.y &lt;= startY + tileSize * 3</Value>
+          <Value>dir</Value>
+          <Value>pos.x</Value>
+          <Value>pos.y</Value>
+          <Value>(-startY - tileSize * 2 + (int)nextStepPos.y )/tileSize</Value>
+          <Value>(-startX - tileSize * 2 + (int)nextStepPos.x )/tileSize</Value>
+          <Value>(int)nextStepPos.x</Value>
+          <Value>nextStepPos</Value>
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
-      <Breakpoint file="/Users/Shared/Unity/Ink_Wars/Assets/Scripts/BackBtnScript.cs" line="10" column="11" />
-      <Breakpoint file="/Users/Shared/Unity/Ink_Wars/Assets/Scripts/Board.cs" line="193" column="19" />
+      <Breakpoint file="/Users/Shared/Unity/Ink_Wars/Assets/Scripts/Board.cs" line="428" column="19" />
+      <Breakpoint file="/Users/Shared/Unity/Ink_Wars/Assets/Scripts/Board.cs" line="397" column="1" />
+      <Breakpoint file="/Users/Shared/Unity/Ink_Wars/Assets/Scripts/Board.cs" line="206" column="21" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches>
@@ -26,5 +47,15 @@
     <Watch file="Assets/Scripts/TileTouch.cs" line="78" offsetX="900" offsetY="1211" expression="directionVect" liveUpdate="False" />
     <Watch file="Assets/Scripts/TileTouch.cs" line="88" offsetX="810" offsetY="1301" expression="currState" liveUpdate="False" />
     <Watch file="Assets/Scripts/TileTouch.cs" line="85" offsetX="980" offsetY="1244" expression="transform.position" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="144" offsetX="474" offsetY="2142" expression="movesNum" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="147" offsetX="706" offsetY="2195" expression="steps" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="212" offsetX="704" offsetY="3165" expression="pos.x &lt;= startX + tileSize * 2" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="211" offsetX="706" offsetY="3138" expression="pos.x &gt;= startX + mapWidth * tileSize + tileSize * 2" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="213" offsetX="706" offsetY="3187" expression="pos.y &gt;= startY + mapHeight * tileSize + tileSize * 2" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="214" offsetX="704" offsetY="3213" expression="pos.y &lt;= startY + tileSize * 2" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="212" offsetX="714" offsetY="3245" expression="dir" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="212" offsetX="721" offsetY="3278" expression="pos.x" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="214" offsetX="727" offsetY="3305" expression="pos.y" liveUpdate="False" />
+    <Watch file="Assets/Scripts/Board.cs" line="146" offsetX="475" offsetY="2177" expression="direction" liveUpdate="False" />
   </MonoDevelop.Ide.DebuggingService.PinnedWatches>
 </Properties>

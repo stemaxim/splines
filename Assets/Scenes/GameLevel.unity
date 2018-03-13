@@ -853,13 +853,14 @@ MonoBehaviour:
   mapHeight: 46
   tileSize: 20
   _area: {fileID: 2089925227}
-  totalSteps: 800
+  totalSteps: 600
   randomMin: 5
   randomMax: 22
-  drawDelay: 0.05
+  drawDelay: 0.02
   bgTile: {fileID: 1709650951884668, guid: 88d8650bc3ffd45dea5a1d553b289063, type: 2}
   line: {fileID: 1792169460195948, guid: de2a2e7a835da494cafbdd42be09e85c, type: 2}
   cover: {fileID: 659548961}
+  dbgPrefab: {fileID: 1547612445161944, guid: 1dcd5b5635053463091b4a859de4fd35, type: 2}
   isDelayOn: 1
 --- !u!1 &1764142182
 GameObject:
