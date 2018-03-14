@@ -130,6 +130,7 @@ public class Board : MonoBehaviour {
 
 			if (isBorder ( nextStepPos, direction )||(steps == 0)) { 
 				direction++;
+				direction %= 4;
 				steps = Random.Range (randomMin, randomMax);
 
 
@@ -151,7 +152,8 @@ public class Board : MonoBehaviour {
 			newLine.transform.position = nextStepPos;
 			newLine.transform.rotation = rotationHelper;
 
-			if (movesNum == 1 && startPos != nextStepPos) {
+			if ( movesNum == 1 && startPos != nextStepPos ) {
+				Debug.LogWarning ("direction: "+direction+" movesNum: "+movesNum);
 				switch (direction) {
 				case 2:
 					steps = (int)(nextStepPos.y - startPos.y)/tileSize;//((-startY - tileSize * 2 + (int)nextStepPos.y )/tileSize);
@@ -190,7 +192,8 @@ public class Board : MonoBehaviour {
 //1						linesData [tiley].min = Mathf.Min ( linesData [tiley].min, tilex - 1);
 //1						linesData [tiley].max = Mathf.Max ( linesData [tiley].max, tilex );
 //1					};
-			nextStepPos += ( Directions[direction %= 4] * tileSize );
+
+			nextStepPos += ( Directions[direction] * tileSize );
 
 			steps--;
 
