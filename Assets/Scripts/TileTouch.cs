@@ -29,7 +29,7 @@ public class TileTouch : MonoBehaviour {
 
 
 	void Start () {
-		tileSize = Board.instance.tileSize;
+		tileSize = Board.tileSize;
 	}
 
 	void Awake () {
@@ -64,9 +64,6 @@ public class TileTouch : MonoBehaviour {
 		foreach (Vector2 directionVect in new Vector2[4] {Vector2.left, Vector2.up, Vector2.down, Vector2.right}) {
 
 			hitBlocks = Physics2D.LinecastAll (transform.position, (Vector2)transform.position + directionVect * tileSize);
-
-
-
 
 			if (hitBlocks.Length > 1) {
 				if (currState != State.disabled && hitBlocks.Last().collider.tag != "Wall") {

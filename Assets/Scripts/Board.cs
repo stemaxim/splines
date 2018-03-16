@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+//using Random = System.Random;
 
 public class Board : MonoBehaviour {
 
@@ -15,7 +16,7 @@ public class Board : MonoBehaviour {
 	//	public int xSize, ySize;
 	public int mapWidth;
 	public int mapHeight;
-	public int tileSize = 20;
+	public static int tileSize = 20;
 	private int mapSize;
 
 
@@ -40,16 +41,75 @@ public class Board : MonoBehaviour {
 	private int startX, startY;
 
 	Vector3[] Directions = new Vector3[] { Vector3.up, Vector3.right, Vector3.down, Vector3.left  };
+
+	private struct DirectionsData
+	{
+		public int direction;
+		public int x,y;
+	}
+
+	private DirectionsData[] reverseDirection = new DirectionsData[] {
+		new DirectionsData { direction = 2, x = -1*tileSize, y = 0*tileSize },
+		new DirectionsData { direction = 3, x = 0*tileSize, y = 1*tileSize },
+		new DirectionsData { direction = 0, x = 1*tileSize, y = 0*tileSize },
+		new DirectionsData { direction = 1, x = 0*tileSize, y = -1*tileSize }
+	};
 	//	Quaternion[] Rotations = new Quaternion[] { Vector3.down, Vector3.left, Vector3.up, Vector3.right };
 	int direction = 0;
 
 	//	public Sprite[,] tiles = new Sprite[tile_width,tile_height];
-	public struct minMaxPos {
+	public struct MinMaxPos {
 		public int min;
 		public int max;
 	}
 
-	public minMaxPos[] linesData;// = new minMaxPos[mapHeight](new minMaxPos{5555,-1});
+	private struct LinesData {
+		public GameObject gobj;
+		public int direction;
+		public int x, y;
+		public string hashKey;
+		public LinesData (GameObject _gobj, int _direction, int _x, int _y) {
+			gobj = _gobj;
+			direction = _direction;
+			x = _x;
+			y = _y;
+			hashKey = "" + _direction + "/" + _x + "/" + _y;
+		}
+
+	}
+
+//	public struct linesData
+//	{
+//		public int direction {
+//			get { return direction; }
+//			set {
+//				hashKey ="" + direction + "/" + x + "/" + y;
+//				direction = value;
+//			}
+//		}
+//		public int x
+//		{
+//			get { return x; }
+//			set
+//			{
+//				hashKey = "" + direction + "/" + x + "/" + y;
+//				x = value;
+//			}
+//		}
+//		public int y
+//		{
+//			get { return y; }
+//			set
+//			{
+//				hashKey = "" + direction + "/" + x + "/" + y;
+//				y = value;
+//			}
+//		}
+//		public string hashKey {  get; private set; }
+//	}
+
+	public static Dictionary <string,bool> lines = new Dictionary<string, bool> ();
+	// = new minMaxPos[mapHeight](new minMaxPos{5555,-1});
 
 	public float drawDelay = 0.02f;
 
@@ -77,7 +137,7 @@ public class Board : MonoBehaviour {
 
 		//		Vector2 offset = new Vector2 (tileSize, tileSize);//bgTile.GetComponent<SpriteRenderer> ().bounds.size;
 		CreateBoard (tileSize, tileSize);//(offset.x, offset.y); 
-//		yield return 
+		lines.Clear();
 		StartCoroutine( DrawLine(totalSteps) );
 //		StartCoroutine( DisableAdjacent() );
 	}
@@ -118,6 +178,13 @@ public class Board : MonoBehaviour {
 
 		var startPos = nextStepPos;
 
+		var linesToStore = 4;
+
+		var linesRollback = new List<LinesData> ();
+
+		var currLineData = new LinesData ();
+		var currLineDataRev = new LinesData ();
+
 //		int offsetX, offsetY = 0;
 
 		//fill in linesData array;
@@ -126,72 +193,145 @@ public class Board : MonoBehaviour {
 		//		lineObjHelper.transform.position = nextStepPos;
 		//		lineObjHandler.transform.position = nextStepPos;
 
-		for ( ; movesNum > 0; movesNum-- ) {
+		for (; movesNum > 0; movesNum-- ) {
 
 			if (isBorder ( nextStepPos, direction )||(steps == 0)) { 
-				direction++;
-				direction %= 4;
+
 				steps = Random.Range (randomMin, randomMax);
 
 
+				////// lines turn collision prediction /////////
+
+				var tmpDirection = ((direction + 2) % 4);
+				Vector3 checkPos = nextStepPos + Directions [direction] * tileSize * steps;
+
+				currLineData = new LinesData ( null, tmpDirection, (int)checkPos.x, (int)checkPos.y); //linesCorner
+				currLineDataRev = new LinesData ( null, reverseDirection [tmpDirection].direction, (int)checkPos.x + reverseDirection [tmpDirection].x,
+											(int)checkPos.y + reverseDirection [tmpDirection].y);
+				if (lines.ContainsKey (currLineData.hashKey) || 
+					lines.ContainsKey (currLineDataRev.hashKey))  
+				{steps -= 3;};
+				////////////////////////////////////////////////////////
+
+				//////// fill in linesRollback list used on collision detection /////////
+				if (linesToStore == 0) { 
+					linesRollback.RemoveAt (0);
+				}
+				else {
+					linesToStore--;
+				};
+
+				////////////////////////
 				GameObject lineCorner = Instantiate ( line, nextStepPos, rotationHelper, transform );
+				lineCorner.name = "cornerInstance";
 				lineCorner.transform.position = nextStepPos;
 				lineCorner.transform.rotation = rotationHelper;
 
+				currLineData = new LinesData ( lineCorner, direction, (int)nextStepPos.x, (int)nextStepPos.y);
+				currLineDataRev = new LinesData ( lineCorner, reverseDirection [tmpDirection].direction, (int)checkPos.x + reverseDirection [tmpDirection].x,
+										(int)checkPos.y + reverseDirection [tmpDirection].y);
+
+				Debug.LogErrorFormat ("Automatic hashKey: {0}", currLineData.hashKey);
+
+				linesRollback.Add (currLineData);
+//
+				lines.Add (currLineData.hashKey, true);
+				lines.Add (currLineDataRev.hashKey, true);
+
+				direction++;
+				direction %= 4;
 				rotationHelper *= Quaternion.Euler(new Vector3( 0, 0, -90 ));
 //				Debug.Log (rotationHelper.eulerAngles.ToString());
 				//				rotationHelper.eulerAngles *= Vector3( 0,0, -90);//Quaternion.Euler(new Vector3( 0,0, -90));
 			} ;
+			////////////// End of corner check ///////
 
+			 
 			//			lineObjHelper.transform.position += (Vector3)( Directions[direction % 4] * tileSize );
 
 
+			///////// don't draw through existing lines
+			var stepsPred = nextStepPos + Directions[direction] * steps * tileSize;
+
+			currLineData = new LinesData ( null, direction, (int)nextStepPos.x, (int)nextStepPos.y);
+			currLineDataRev = new LinesData ( null, reverseDirection [direction].direction, (int)nextStepPos.x + reverseDirection [direction].x,
+										(int)nextStepPos.y + reverseDirection [direction].y);
+
+//			var linesKey = "" + direction + "/"+nextStepPos.x+"/" + nextStepPos.y;
+//			var linesReverseKey = "" + reverseDirection [direction].direction +"/"+ (nextStepPos.x + reverseDirection [direction].x)
+//									+"/"+ (nextStepPos.y + reverseDirection [direction].y);
+			if (lines.ContainsKey (currLineData.hashKey) || 
+				lines.ContainsKey (currLineDataRev.hashKey) ) 
+			{
+				Debug.LogWarning ("Found match at "+currLineData.hashKey+" direction: "+direction);
+
+				var dbg = Instantiate ( dbgPrefab, nextStepPos, Quaternion.identity, transform );
+				dbg.name = "dbg["+direction+","+nextStepPos+",steps: "+steps+"]";
+				steps = 0;
+
+				if (linesRollback.Count > 0 ) {
+
+					nextStepPos = linesRollback.First ().gobj.transform.position;
+					rotationHelper = linesRollback.First ().gobj.transform.rotation;
+
+					foreach (var line in linesRollback) {
+						lines.Remove (line.hashKey);
+						Destroy ( line.gobj );
+					}
+					linesRollback.Clear ();// = new List<GameObject> (); 
+					linesToStore = 4;
+				} 
+				continue;
+			}
+				
+			/////////END don't draw through existing lines
+
+
+
+//			lines.Add ("" + reverseDirection [direction].direction +"/"+ (nextStepPos.x + reverseDirection [direction].x)+"/"
+//								+ (nextStepPos.y + reverseDirection [direction].y), true);
+
+			/////////
 
 			GameObject newLine = Instantiate ( line, nextStepPos, rotationHelper, transform );
-
+			newLine.name = "Line [direction:" + direction + "]";
 			newLine.transform.position = nextStepPos;
 			newLine.transform.rotation = rotationHelper;
 
-			if ( movesNum == 1 && startPos != nextStepPos ) {
-				Debug.LogWarning ("direction: "+direction+" movesNum: "+movesNum);
-				switch (direction) {
-				case 2:
-					steps = (int)(nextStepPos.y - startPos.y)/tileSize;//((-startY - tileSize * 2 + (int)nextStepPos.y )/tileSize);
-					movesNum = steps+1;
-					break;
-				case 3:
-					steps = (int)(nextStepPos.x - startPos.x)/tileSize;//((-startX - tileSize * 2 + (int)nextStepPos.x )/tileSize);
-					movesNum = steps+1;
-					break;
-				case 0:
-//					steps = 5;//Random.Range (randomMin, randomMax);
-					movesNum = 5;
-					break;
-				case 1:
-//					steps = 5;//Random.Range (randomMin, randomMax);
-					movesNum = 5;
-					break;
-				}
-			}
-//1			int tilex = (int) (nextStepPos.x / tileSize);
-//1			int tiley = (int) (nextStepPos.y / tileSize);
+			currLineData.gobj = newLine;
 
-//1		if ( direction == 0 ) {
-//1			linesData [tiley].min = Mathf.Min ( linesData [tiley].min,  tilex);
-//1			linesData [tiley].max = Mathf.Max ( linesData [tiley].max, tilex + 1);
-//1		} else
-//1			if ( direction == 2 ) {
-//1				linesData [tiley].min = Mathf.Min ( linesData [tiley].min, tilex - 1);
-//1				linesData [tiley].max = Mathf.Max ( linesData [tiley].max, tilex );
-//1			} else
-//1				if ( direction == 1 ) {
-//1					linesData [tiley].min = Mathf.Min ( linesData [tiley].min, tilex - 1);
-//1					linesData [tiley].max = Mathf.Max ( linesData [tiley].max, tilex );
-//1				} else
-//1					if ( direction == 3 ) {
-//1						linesData [tiley].min = Mathf.Min ( linesData [tiley].min, tilex - 1);
-//1						linesData [tiley].max = Mathf.Max ( linesData [tiley].max, tilex );
-//1					};
+			//////// fill in linesRollback list used on collision detection /////////
+			if (linesToStore == 0) { 
+				linesRollback.RemoveAt(0);
+			}
+			else {
+				linesToStore--;
+			};
+
+			linesRollback.Add (currLineData);
+			lines.Add (currLineData.hashKey, true);
+			lines.Add (currLineDataRev.hashKey, true);
+			//////////////////////////////
+
+//			if ( movesNum == 1 && startPos != nextStepPos ) {
+//				switch (direction) {
+//				case 2:
+//					steps = (int)(nextStepPos.y - startPos.y)/tileSize;//((-startY - tileSize * 2 + (int)nextStepPos.y )/tileSize);
+//					movesNum = steps+1;
+//					break;
+//				case 3:
+//					steps = (int)(nextStepPos.x - startPos.x)/tileSize;//((-startX - tileSize * 2 + (int)nextStepPos.x )/tileSize);
+//					movesNum = steps+1;
+//					break;
+//				case 0: //					steps = 5;//Random.Range (randomMin, randomMax);
+//					movesNum = 5;
+//					break;
+//				case 1:
+//					movesNum = 5;
+//					break;
+//				}
+//			}
+
 
 			nextStepPos += ( Directions[direction] * tileSize );
 
@@ -201,6 +341,8 @@ public class Board : MonoBehaviour {
 
 			//			Debug.Log (rotationHelper.eulerAngles);
 		}
+
+		Debug.Log (" linesData: "+ System.String.Join ("\n", lines.Select(kv => kv.Key).ToArray())+";");
 //		DisableAdjacent ();
 
 //		this.gameObject.GetComponentInParent<>().
@@ -209,8 +351,6 @@ public class Board : MonoBehaviour {
 		cover.GetComponent<BoxCollider2D>().enabled = false;
 		Destroy(cover);
 		TileTouch.instance.paintTile( TileTouch.State.disabled );
-
-		Instantiate ( dbgPrefab, nextStepPos, Quaternion.identity, transform );
 	}
 
 
@@ -226,7 +366,7 @@ public class Board : MonoBehaviour {
 	}
 
 
-	void DisableAdjacent() {
+	void DisableAdjacentArea() {
 			
 			Destroy(cover);
 			TileTouch.instance.paintTile(TileTouch.State.disabled);

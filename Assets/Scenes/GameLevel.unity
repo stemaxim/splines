@@ -851,11 +851,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapWidth: 28
   mapHeight: 46
-  tileSize: 20
   _area: {fileID: 2089925227}
-  totalSteps: 600
+  totalSteps: 300
   randomMin: 5
-  randomMax: 22
+  randomMax: 20
   drawDelay: 0.02
   bgTile: {fileID: 1709650951884668, guid: 88d8650bc3ffd45dea5a1d553b289063, type: 2}
   line: {fileID: 1792169460195948, guid: de2a2e7a835da494cafbdd42be09e85c, type: 2}
