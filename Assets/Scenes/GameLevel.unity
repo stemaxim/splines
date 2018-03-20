@@ -852,7 +852,7 @@ MonoBehaviour:
   mapWidth: 28
   mapHeight: 46
   _area: {fileID: 2089925227}
-  totalSteps: 300
+  totalSteps: 800
   randomMin: 5
   randomMax: 20
   drawDelay: 0.02

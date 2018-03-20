@@ -48,7 +48,7 @@ public class Board : MonoBehaviour {
 		public int x,y;
 	}
 
-	private DirectionsData[] reverseDirection = new DirectionsData[] {
+	private static DirectionsData[] reverseDirection = new DirectionsData[] {
 		new DirectionsData { direction = 2, x = -1*tileSize, y = 0*tileSize },
 		new DirectionsData { direction = 3, x = 0*tileSize, y = 1*tileSize },
 		new DirectionsData { direction = 0, x = 1*tileSize, y = 0*tileSize },
@@ -57,7 +57,6 @@ public class Board : MonoBehaviour {
 	//	Quaternion[] Rotations = new Quaternion[] { Vector3.down, Vector3.left, Vector3.up, Vector3.right };
 	int direction = 0;
 
-	//	public Sprite[,] tiles = new Sprite[tile_width,tile_height];
 	public struct MinMaxPos {
 		public int min;
 		public int max;
@@ -68,12 +67,16 @@ public class Board : MonoBehaviour {
 		public int direction;
 		public int x, y;
 		public string hashKey;
+		public string hashKeyRev;
 		public LinesData (GameObject _gobj, int _direction, int _x, int _y) {
 			gobj = _gobj;
 			direction = _direction;
 			x = _x;
 			y = _y;
 			hashKey = "" + _direction + "/" + _x + "/" + _y;
+			hashKeyRev = "" + reverseDirection [_direction].direction + "/" + (_x + reverseDirection [_direction].x) + "/" + 
+																				(_y + reverseDirection [_direction].y);
+
 		}
 
 	}
@@ -177,13 +180,17 @@ public class Board : MonoBehaviour {
 									z = 0 };
 
 		var startPos = nextStepPos;
+		Vector3 prevRollbackPos = Vector3.zero;
 
-		var linesToStore = 4;
+		var linesToStore = 20;
 
 		var linesRollback = new List<LinesData> ();
 
 		var currLineData = new LinesData ();
-		var currLineDataRev = new LinesData ();
+//		var currLineDataRev = new LinesData ();
+
+		int ahead = 1;
+		int loopCount = 1;
 
 //		int offsetX, offsetY = 0;
 
@@ -199,50 +206,62 @@ public class Board : MonoBehaviour {
 
 				steps = Random.Range (randomMin, randomMax);
 
-
 				////// lines turn collision prediction /////////
 
 				var tmpDirection = ((direction + 2) % 4);
-				Vector3 checkPos = nextStepPos + Directions [direction] * tileSize * steps;
+				Vector3 checkPos = nextStepPos + Directions [ (direction + 1) % 4] * tileSize * steps * ahead;
 
 				currLineData = new LinesData ( null, tmpDirection, (int)checkPos.x, (int)checkPos.y); //linesCorner
-				currLineDataRev = new LinesData ( null, reverseDirection [tmpDirection].direction, (int)checkPos.x + reverseDirection [tmpDirection].x,
-											(int)checkPos.y + reverseDirection [tmpDirection].y);
-				if (lines.ContainsKey (currLineData.hashKey) || 
-					lines.ContainsKey (currLineDataRev.hashKey))  
-				{steps -= 3;};
+//				currLineDataRev = new LinesData ( null, reverseDirection [tmpDirection].direction, (int)checkPos.x + reverseDirection [tmpDirection].x,
+//											(int)checkPos.y + reverseDirection [tmpDirection].y);
+
+				if (lines.ContainsKey (currLineData.hashKey) ||  lines.ContainsKey (currLineData.hashKeyRev))  
+				{	steps -= 3;};
 				////////////////////////////////////////////////////////
 
-				//////// fill in linesRollback list used on collision detection /////////
+
+				currLineData = new LinesData ( null, direction, (int)nextStepPos.x, (int)nextStepPos.y);
+
+				if (lines.ContainsKey (currLineData.hashKey) || lines.ContainsKey (currLineData.hashKeyRev)) {
+					continue;
+				}
+				///// fill-in lines dictionary to detect lines overlays further
+
+				lines.Add (currLineData.hashKey, true);
+				lines.Add (currLineData.hashKeyRev, true);
+
+				GameObject lineCorner = Instantiate ( line, nextStepPos, rotationHelper, transform );
+				lineCorner.name = "cornerInstance";
+				lineCorner.transform.position = nextStepPos;
+				lineCorner.transform.rotation = rotationHelper;
+//				lineCorner.GetComponent<Image> ().color = Color.red;
+				currLineData.gobj = lineCorner;
+
+//1				currLineDataRev = new LinesData ( lineCorner, reverseDirection [tmpDirection].direction, (int)checkPos.x + reverseDirection [tmpDirection].x,
+//1										(int)checkPos.y + reverseDirection [tmpDirection].y);
+
+//				Debug.LogErrorFormat ("Automatic hashKey: {0}", currLineData.hashKey);
+
+				//////// fill-in linesRollback list used on collision detection /////////
+
 				if (linesToStore == 0) { 
 					linesRollback.RemoveAt (0);
 				}
 				else {
 					linesToStore--;
 				};
+				linesRollback.Add (currLineData);
 
 				////////////////////////
-				GameObject lineCorner = Instantiate ( line, nextStepPos, rotationHelper, transform );
-				lineCorner.name = "cornerInstance";
-				lineCorner.transform.position = nextStepPos;
-				lineCorner.transform.rotation = rotationHelper;
 
-				currLineData = new LinesData ( lineCorner, direction, (int)nextStepPos.x, (int)nextStepPos.y);
-				currLineDataRev = new LinesData ( lineCorner, reverseDirection [tmpDirection].direction, (int)checkPos.x + reverseDirection [tmpDirection].x,
-										(int)checkPos.y + reverseDirection [tmpDirection].y);
 
-				Debug.LogErrorFormat ("Automatic hashKey: {0}", currLineData.hashKey);
-
-				linesRollback.Add (currLineData);
-//
-				lines.Add (currLineData.hashKey, true);
-				lines.Add (currLineDataRev.hashKey, true);
-
-				direction++;
+				direction ++;
 				direction %= 4;
-				rotationHelper *= Quaternion.Euler(new Vector3( 0, 0, -90 ));
+
+				// replace with  er = Vect3(0,0,-90*direction);
+				rotationHelper = Quaternion.Euler(new Vector3( 0, 0, (direction+2) * -90 ));
 //				Debug.Log (rotationHelper.eulerAngles.ToString());
-				//				rotationHelper.eulerAngles *= Vector3( 0,0, -90);//Quaternion.Euler(new Vector3( 0,0, -90));
+				//rotationHelper.eulerAngles *= Vector3( 0,0, -90);//Quaternion.Euler(new Vector3( 0,0, -90));
 			} ;
 			////////////// End of corner check ///////
 
@@ -251,39 +270,59 @@ public class Board : MonoBehaviour {
 
 
 			///////// don't draw through existing lines
-			var stepsPred = nextStepPos + Directions[direction] * steps * tileSize;
+//			var stepsPred = nextStepPos + Directions[direction] * steps * tileSize;
 
 			currLineData = new LinesData ( null, direction, (int)nextStepPos.x, (int)nextStepPos.y);
-			currLineDataRev = new LinesData ( null, reverseDirection [direction].direction, (int)nextStepPos.x + reverseDirection [direction].x,
-										(int)nextStepPos.y + reverseDirection [direction].y);
+//			currLineDataRev = new LinesData ( null, reverseDirection [direction].direction, (int)nextStepPos.x + reverseDirection [direction].x,
+//										(int)nextStepPos.y + reverseDirection [direction].y);
 
 //			var linesKey = "" + direction + "/"+nextStepPos.x+"/" + nextStepPos.y;
 //			var linesReverseKey = "" + reverseDirection [direction].direction +"/"+ (nextStepPos.x + reverseDirection [direction].x)
 //									+"/"+ (nextStepPos.y + reverseDirection [direction].y);
-			if (lines.ContainsKey (currLineData.hashKey) || 
-				lines.ContainsKey (currLineDataRev.hashKey) ) 
+			if (lines.ContainsKey (currLineData.hashKey) || lines.ContainsKey (currLineData.hashKeyRev) ) 
 			{
-				Debug.LogWarning ("Found match at "+currLineData.hashKey+" direction: "+direction);
+//				Debug.LogWarning ("Found match at "+currLineData.hashKey+" direction: "+direction);
 
 				var dbg = Instantiate ( dbgPrefab, nextStepPos, Quaternion.identity, transform );
 				dbg.name = "dbg["+direction+","+nextStepPos+",steps: "+steps+"]";
 				steps = 0;
 
+				
 				if (linesRollback.Count > 0 ) {
 
-					nextStepPos = linesRollback.First ().gobj.transform.position;
-					rotationHelper = linesRollback.First ().gobj.transform.rotation;
+					var lC = linesRollback.Count - 1;
+					nextStepPos = linesRollback.ElementAt (lC - 2 * loopCount).gobj.transform.position;
+					rotationHelper = linesRollback.ElementAt (lC - 2 * loopCount).gobj.transform.rotation;
+					direction = linesRollback.ElementAt (lC - 2 * loopCount).direction;
 
-					foreach (var line in linesRollback) {
-						lines.Remove (line.hashKey);
-						Destroy ( line.gobj );
+					if (nextStepPos == prevRollbackPos) {
+						loopCount++;	
+					} else
+						loopCount = 1;
+
+					for (int li = lC; li >=  lC - 2 * loopCount && li > 0; li -- ) {
+						var lineToRemove = linesRollback [li];
+						lines.Remove (lineToRemove.hashKey);
+						lines.Remove (lineToRemove.hashKeyRev);
+						Destroy ( lineToRemove.gobj );
+						linesRollback.RemoveAt(li);
 					}
-					linesRollback.Clear ();// = new List<GameObject> (); 
-					linesToStore = 4;
+//!					linesRollback.Clear ();
+					linesToStore = 20;
+					prevRollbackPos = nextStepPos;
+
 				} 
+//				loopCount++;
+
+//				if (loopCount > 3) {
+//					ahead *= -1;
+//					nextStepPos += ( Directions[direction] * tileSize * ahead );
+//					loopCount = 0;
+//					continue;
+//				}
 				continue;
 			}
-				
+//			loopCount = 1;
 			/////////END don't draw through existing lines
 
 
@@ -300,7 +339,7 @@ public class Board : MonoBehaviour {
 
 			currLineData.gobj = newLine;
 
-			//////// fill in linesRollback list used on collision detection /////////
+			//////// fill-in linesRollback list used on collision detection /////////
 			if (linesToStore == 0) { 
 				linesRollback.RemoveAt(0);
 			}
@@ -310,30 +349,31 @@ public class Board : MonoBehaviour {
 
 			linesRollback.Add (currLineData);
 			lines.Add (currLineData.hashKey, true);
-			lines.Add (currLineDataRev.hashKey, true);
-			//////////////////////////////
+			lines.Add (currLineData.hashKeyRev, true);
 
-//			if ( movesNum == 1 && startPos != nextStepPos ) {
-//				switch (direction) {
-//				case 2:
-//					steps = (int)(nextStepPos.y - startPos.y)/tileSize;//((-startY - tileSize * 2 + (int)nextStepPos.y )/tileSize);
-//					movesNum = steps+1;
-//					break;
-//				case 3:
-//					steps = (int)(nextStepPos.x - startPos.x)/tileSize;//((-startX - tileSize * 2 + (int)nextStepPos.x )/tileSize);
-//					movesNum = steps+1;
-//					break;
-//				case 0: //					steps = 5;//Random.Range (randomMin, randomMax);
-//					movesNum = 5;
-//					break;
-//				case 1:
-//					movesNum = 5;
-//					break;
-//				}
-//			}
+			////////////////////////////// Return to start
+
+//!			if ( movesNum == 1 && startPos != nextStepPos ) {
+//!				switch (direction) {
+//!				case 2:
+//!					steps = (int)(nextStepPos.y - startPos.y)/tileSize;//((-startY - tileSize * 2 + (int)nextStepPos.y )/tileSize);
+//!					movesNum = steps+1;
+//!					break;
+//!				case 3:
+//!					steps = (int)(nextStepPos.x - startPos.x)/tileSize;//((-startX - tileSize * 2 + (int)nextStepPos.x )/tileSize);
+//!					movesNum = steps+1;
+//!					break;
+//!				case 0: //					steps = 5;//Random.Range (randomMin, randomMax);
+//!					movesNum = 5;
+//!					break;
+//!				case 1:
+//!					movesNum = 5;
+//!					break;
+//!				}
+//!			}
 
 
-			nextStepPos += ( Directions[direction] * tileSize );
+			nextStepPos += ( Directions[direction] * tileSize * ahead );
 
 			steps--;
 
@@ -342,7 +382,7 @@ public class Board : MonoBehaviour {
 			//			Debug.Log (rotationHelper.eulerAngles);
 		}
 
-		Debug.Log (" linesData: "+ System.String.Join ("\n", lines.Select(kv => kv.Key).ToArray())+";");
+//		Debug.Log (" linesData: "+ System.String.Join ("\n", lines.Select(kv => kv.Key).ToArray())+";");
 //		DisableAdjacent ();
 
 //		this.gameObject.GetComponentInParent<>().
